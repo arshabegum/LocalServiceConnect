@@ -189,8 +189,10 @@
                 <div>
                     <!-- Status & Actions -->
                     <div th:if="${v.availabilityStatus}">
-                        <button class="btn btn-warning w-100 fw-semibold py-2" 
-                                th:onclick="'openBookingModal(' + ${v.id} + ', \'' + ${v.businessName} + '\', ' + ${v.price} + ')'">
+                        <button type="button" class="btn btn-warning w-100 fw-semibold py-2 book-vendor-btn"
+                                th:data-vendor-id="${v.id}"
+                                th:data-business-name="${v.businessName}"
+                                th:data-price="${v.price}">
                             Book Now
                         </button>
                     </div>
@@ -270,6 +272,16 @@
         var modal = new bootstrap.Modal(document.getElementById('bookingModal'));
         modal.show();
     }
+
+    document.querySelectorAll('.book-vendor-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            openBookingModal(
+                this.dataset.vendorId,
+                this.dataset.businessName,
+                this.dataset.price
+            );
+        });
+    });
 </script>
 </body>
 </html>
