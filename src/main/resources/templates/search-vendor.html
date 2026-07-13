@@ -189,8 +189,10 @@
                 <div>
                     <!-- Status & Actions -->
                     <div th:if="${v.availabilityStatus}">
-                        <button class="btn btn-warning w-100 fw-semibold py-2" 
-                                th:onclick="'openBookingModal(' + ${v.id} + ', \'' + ${v.businessName} + '\', ' + ${v.price} + ')'">
+                        <button class="btn btn-warning w-100 fw-semibold py-2 book-btn" 
+                                th:data-vendor-id="${v.id}"
+                                th:data-vendor-name="${v.businessName}"
+                                th:data-vendor-price="${v.price}">
                             Book Now
                         </button>
                     </div>
@@ -219,7 +221,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title fw-bold" id="bookingModalLabel">Book Vendor</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#bookingModal" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
             <form action="/bookings/create" method="post">
@@ -261,6 +263,16 @@
     // Set minimum date to today
     var today = new Date().toISOString().split('T')[0];
     document.getElementById('modalBookingDate').setAttribute('min', today);
+
+    // Book Now button handler
+    document.querySelectorAll('.book-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const vendorId = this.dataset.vendorId;
+            const businessName = this.dataset.vendorName;
+            const price = this.dataset.vendorPrice;
+            openBookingModal(vendorId, businessName, price);
+        });
+    });
 
     function openBookingModal(vendorId, businessName, price) {
         document.getElementById('modalVendorId').value = vendorId;
