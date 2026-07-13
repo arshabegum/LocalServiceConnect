@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Local Service Connect</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            background: #f4f6f9;
+            font-family: 'Inter', Arial, sans-serif;
+        }
+        .sidebar {
+            width: 240px;
+            height: 100vh;
+            background: #2c3e50;
+            position: fixed;
+            color: white;
+            padding-top: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        .sidebar h3 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+        .sidebar a {
+            display: block;
+            color: #bdc3c7;
+            text-decoration: none;
+            padding: 14px 25px;
+            font-size: 16px;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background: #34495e;
+            color: white;
+            border-left-color: #f1c40f;
+        }
+        .sidebar a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        .content {
+            margin-left: 240px;
+            padding: 30px;
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            background: white;
+            margin-bottom: 30px;
+        }
+        .profile-img {
+            font-size: 80px;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h3>Service Connect</h3>
+    <a href="/dashboard"><i class="fa fa-home"></i> Home</a>
+    <a href="/profile" class="active"><i class="fa fa-user"></i> My Profile</a>
+    <a href="/search-vendor" th:if="${user.role == 'CUSTOMER'}"><i class="fa fa-search"></i> Search Vendors</a>
+    <a href="/bookings"><i class="fa fa-calendar"></i> Bookings</a>
+    <a href="/reviews"><i class="fa fa-star"></i> Reviews</a>
+    <a href="/contact"><i class="fa fa-phone"></i> Contact</a>
+    <a href="/logout"><i class="fa fa-right-from-bracket"></i> Logout</a>
+</div>
+
+<div class="content">
+    
+    <div class="container-fluid px-0">
+        
+        <!-- Alerts -->
+        <div class="alert alert-success alert-dismissible fade show" role="alert" th:if="${successMessage}">
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${errorMessage}">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="row">
+            
+            <!-- User Core Profile Card -->
+            <div class="col-md-6">
+                <div class="card p-4">
+                    <div class="text-center mb-4">
+                        <i class="fa fa-user-circle profile-img"></i>
+                        <h4 class="mt-2 fw-bold" th:text="${user.fullName}">Full Name</h4>
+                        <span class="badge bg-primary px-3 py-2" th:text="${user.role}">Role</span>
+                    </div>
+                    
+                    <form action="/users/profile/update" method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted">Full Name</label>
+                            <input type="text" name="fullName" class="form-control animate-focus" th:value="${user.fullName}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted">Email (Unchangeable)</label>
+                            <input type="email" class="form-control" th:value="${user.email}" readonly style="background-color: #e9ecef;">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted">Phone Number</label>
+                            <input type="text" name="phoneNumber" class="form-control" th:value="${user.phoneNumber}" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-muted">New Password (Leave blank to keep current)</label>
+                            <input type="password" name="password" class="form-control" placeholder="Enter New Password">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 fw-semibold">Save Profile Details</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Vendor Business Profile Card (Only for Vendors) -->
+            <div class="col-md-6" th:if="${user.role == 'VENDOR'}">
+                <div class="card p-4" th:if="${vendor != null}">
+                    <h4 class="fw-bold mb-4 text-center text-primary">Business Profile</h4>
+                    
+                    <form action="/vendors/profile/update" method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted">Business / Shop Name</label>
+                            <input type="text" name="businessName" class="form-control" th:value="${vendor.businessName}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted">Service Category</label>
+                            <select name="serviceType" class="form-select" required>
+                                <option value="Photographer" th:selected="${vendor.serviceType == 'Photographer'}">Photographer</option>
+                                <option value="Caterer" th:selected="${vendor.serviceType == 'Caterer'}">Caterer</option>
+                                <option value="Decorator" th:selected="${vendor.serviceType == 'Decorator'}">Decorator</option>
+                                <option value="DJ" th:selected="${vendor.serviceType == 'DJ'}">DJ</option>
+                                <option value="Makeup Artist" th:selected="${vendor.serviceType == 'Makeup Artist'}">Makeup Artist</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted">Starting Price per Day (₹)</label>
+                            <input type="number" step="0.01" name="price" class="form-control" th:value="${vendor.price}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted">City / Location</label>
+                            <input type="text" name="city" class="form-control" th:value="${vendor.city}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted">About / Description</label>
+                            <textarea name="description" class="form-control" rows="3" th:text="${vendor.description}" placeholder="Write some lines about your service..."></textarea>
+                        </div>
+
+                        <div class="form-check form-switch mb-4">
+                            <input class="form-check-input" type="checkbox" name="availabilityStatus" value="true" id="availabilityCheck" th:checked="${vendor.availabilityStatus}">
+                            <label class="form-check-label fw-semibold text-muted" for="availabilityCheck">
+                                Mark as Available for Bookings
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 fw-semibold">Save Business Settings</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

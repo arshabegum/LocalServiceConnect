@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - Local Service Connect</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            background: #f4f6f9;
+            font-family: 'Inter', Arial, sans-serif;
+        }
+        .sidebar {
+            width: 240px;
+            height: 100vh;
+            background: #2c3e50;
+            position: fixed;
+            color: white;
+            padding-top: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        .sidebar h3 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+        .sidebar a {
+            display: block;
+            color: #bdc3c7;
+            text-decoration: none;
+            padding: 14px 25px;
+            font-size: 16px;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background: #34495e;
+            color: white;
+            border-left-color: #f1c40f;
+        }
+        .sidebar a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        .content {
+            margin-left: 240px;
+            padding: 30px;
+        }
+        .header-box {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+        .card-box {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            background: white;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        .message-card {
+            border-left: 4px solid #3498db;
+            background: #fdfdfd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h3>Service Connect</h3>
+    <a href="/dashboard"><i class="fa fa-home"></i> Home</a>
+    
+    <!-- Render Profile and search options based on roles -->
+    <a href="/profile" th:if="${user != null && user.role != 'ADMIN'}"><i class="fa fa-user"></i> My Profile</a>
+    <a href="/search-vendor" th:if="${user != null && user.role == 'CUSTOMER'}"><i class="fa fa-search"></i> Search Vendors</a>
+    
+    <a href="/bookings" th:if="${user != null}"><i class="fa fa-calendar"></i> Bookings</a>
+    <a href="/reviews" th:if="${user != null}"><i class="fa fa-star"></i> Reviews</a>
+    <a href="/contact" class="active"><i class="fa fa-phone"></i> Contact</a>
+    <a href="/logout" th:if="${user != null}"><i class="fa fa-right-from-bracket"></i> Logout</a>
+    <a href="/login" th:if="${user == null}"><i class="fa fa-right-to-bracket"></i> Login</a>
+</div>
+
+<div class="content">
+
+    <!-- Flash Messages -->
+    <div class="alert alert-success alert-dismissible fade show" role="alert" th:if="${successMessage}">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${errorMessage}">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="header-box">
+        <h2 class="fw-bold text-primary mb-1">Contact Support</h2>
+        <p class="text-muted mb-0">Need help or have suggestions? Get in touch with our team.</p>
+    </div>
+
+    <div class="row">
+        
+        <!-- Contact details and submission form -->
+        <div th:class="${user != null && user.role == 'ADMIN'} ? 'col-md-5' : 'col-md-8 mx-auto'">
+            <div class="card-box">
+                <h4 class="fw-bold text-dark mb-4">Direct Details</h4>
+                <p class="mb-2"><strong><i class="fa fa-envelope text-primary me-2"></i> Email:</strong> support@localserviceconnect.com</p>
+                <p class="mb-2"><strong><i class="fa fa-phone text-success me-2"></i> Phone:</strong> +91 1234567890</p>
+                <p class="mb-4"><strong><i class="fa fa-location-dot text-danger me-2"></i> Address:</strong> Local Service Connect, Erode, Tamil Nadu.</p>
+                
+                <hr>
+
+                <h4 class="fw-bold text-primary mb-3">Send a Message</h4>
+                <form action="/contact/send" method="post">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-muted">Your Name</label>
+                        <!-- Auto fill name if logged in -->
+                        <input type="text" name="name" class="form-control" placeholder="Enter name" 
+                               th:value="${user != null ? user.fullName : ''}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-muted">Email Address</label>
+                        <!-- Auto fill email if logged in -->
+                        <input type="email" name="email" class="form-control" placeholder="Enter email" 
+                               th:value="${user != null ? user.email : ''}" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-muted">Message</label>
+                        <textarea name="message" class="form-control" rows="5" placeholder="Write your message here..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 fw-semibold py-2">
+                        <i class="fa-regular fa-paper-plane me-1"></i> Send Message
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Admin Messages Log View -->
+        <div class="col-md-7" th:if="${user != null && user.role == 'ADMIN'}">
+            <h4 class="fw-bold text-secondary mb-3">Received Inquiries</h4>
+            
+            <div class="card-box" style="max-height: 600px; overflow-y: auto;">
+                <div th:each="msg : ${messages}" class="message-card">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h6 class="fw-bold mb-0" th:text="${msg.name}">Sender Name</h6>
+                            <span class="text-muted small" th:text="${msg.email}">email@email.com</span>
+                        </div>
+                        <small class="text-muted" th:text="${msg.contactDate}">Date</small>
+                    </div>
+                    <p class="mb-0 text-secondary small" th:text="${msg.message}">Message body...</p>
+                </div>
+
+                <!-- Empty Inquiries -->
+                <div th:if="${#lists.isEmpty(messages)}" class="text-center py-4">
+                    <i class="fa-regular fa-envelope-open text-muted mb-3" style="font-size: 40px;"></i>
+                    <p class="text-muted mb-0">No inquiries found.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
