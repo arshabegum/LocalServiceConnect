@@ -26,16 +26,20 @@ public class Booking {
     private String status; // PENDING, APPROVED, REJECTED, COMPLETED
 
     private Double price;
-    
+
     @Column(length = 500)
     private String notes;
+
+    @Column(length = 500)
+    private String address;
 
     // No-arg constructor
     public Booking() {
     }
 
     // All-arg constructor
-    public Booking(Long id, User customer, Vendor vendor, LocalDate bookingDate, String status, Double price, String notes) {
+    public Booking(Long id, User customer, Vendor vendor, LocalDate bookingDate, String status, Double price,
+            String notes, String address) {
         this.id = id;
         this.customer = customer;
         this.vendor = vendor;
@@ -43,6 +47,7 @@ public class Booking {
         this.status = status;
         this.price = price;
         this.notes = notes;
+        this.address = address;
     }
 
     // Getters and Setters
@@ -102,6 +107,14 @@ public class Booking {
         this.notes = notes;
     }
 
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
     // Manual Builder
     public static BookingBuilder builder() {
         return new BookingBuilder();
@@ -115,6 +128,7 @@ public class Booking {
         private String status;
         private Double price;
         private String notes;
+        private String address;
 
         public BookingBuilder id(Long id) {
             this.id = id;
@@ -151,8 +165,13 @@ public class Booking {
             return this;
         }
 
+        public BookingBuilder address(String address) {
+            this.address = address;
+            return this;
+        }
+
         public Booking build() {
-            return new Booking(id, customer, vendor, bookingDate, status, price, notes);
+            return new Booking(id, customer, vendor, bookingDate, status, price, notes, address);
         }
     }
 }

@@ -38,7 +38,7 @@
         .sidebar a:hover, .sidebar a.active {
             background: #34495e;
             color: white;
-            border-left-color: #f1c40f;
+            border-left-color:#3498db;
         }
         .sidebar a i {
             margin-right: 10px;
@@ -84,7 +84,7 @@
             margin: 15px 0;
         }
         .price {
-            color: #27ae60;
+            color: #012740;
             font-weight: 700;
             font-size: 20px;
         }
@@ -246,6 +246,11 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold text-muted">Special Instructions / Notes</label>
                         <textarea name="notes" class="form-control" rows="3" placeholder="Tell the vendor about event duration, exact venue address, or custom preferences..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-muted">Event Venue / Address</label>
+                        <input type="text" name="address" id="modalAddress" class="form-control" placeholder="Enter full event address (street, city, landmark)" required>
                     </div>
                 </div>
                 

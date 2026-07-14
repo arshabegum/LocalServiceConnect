@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface ContactMessageRepository extends JpaRepository<ContactMessage, Long> {
     List<ContactMessage> findAllByOrderByIdDesc();
+
+    List<ContactMessage> findByEmailOrderByIdDesc(String email);
 }

@@ -113,6 +113,7 @@
                     
                     <th>Category</th>
                     <th>Booking Date</th>
+                    <th th:if="${user.role != 'CUSTOMER'}">Address</th>
                     <th>Price</th>
                     <th>Notes</th>
                     <th>Status</th>
@@ -137,6 +138,9 @@
 
                     <td th:text="${booking.vendor.serviceType}">Category</td>
                     <td th:text="${booking.bookingDate}">Date</td>
+                    <td th:if="${user.role != 'CUSTOMER'}">
+                        <span th:text="${booking.address != null && booking.address != '' ? booking.address : 'No address provided'}" class="text-muted small">Address</span>
+                    </td>
                     <td class="fw-bold text-success" th:text="${'₹' + booking.price}">₹0.00</td>
                     <td>
                         <span th:text="${booking.notes != null && booking.notes != '' ? booking.notes : 'No instructions'}" class="text-muted small">Notes</span>
@@ -182,7 +186,7 @@
                     </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(bookings)}">
-                    <td colspan="9" class="text-center py-4 text-muted">No booking records found.</td>
+                    <td colspan="10" class="text-center py-4 text-muted">No booking records found.</td>
                 </tr>
                 </tbody>
             </table>

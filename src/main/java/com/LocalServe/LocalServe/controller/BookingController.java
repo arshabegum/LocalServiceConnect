@@ -22,10 +22,11 @@ public class BookingController {
 
     @PostMapping("/create")
     public String createBooking(@RequestParam Long vendorId,
-                                @RequestParam String bookingDate,
-                                @RequestParam(required = false) String notes,
-                                HttpSession session,
-                                RedirectAttributes redirectAttributes) {
+            @RequestParam String bookingDate,
+            @RequestParam(required = false) String notes,
+            @RequestParam(required = false) String address,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
 
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null || !"CUSTOMER".equalsIgnoreCase(loggedInUser.getRole())) {
@@ -40,7 +41,7 @@ public class BookingController {
                 return "redirect:/search-vendor";
             }
 
-            bookingService.createBooking(loggedInUser, vendorId, date, notes);
+            bookingService.createBooking(loggedInUser, vendorId, date, notes, address);
             redirectAttributes.addFlashAttribute("successMessage", "Booking request sent successfully!");
             return "redirect:/bookings";
 

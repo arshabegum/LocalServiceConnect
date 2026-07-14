@@ -27,4 +27,8 @@ public class ContactMessageService {
     public List<ContactMessage> getAllMessages() {
         return contactMessageRepository.findAllByOrderByIdDesc();
     }
+
+    public List<ContactMessage> getMessagesForEmail(String email) {
+        return contactMessageRepository.findByEmailOrderByIdDesc(email);
+    }
 }

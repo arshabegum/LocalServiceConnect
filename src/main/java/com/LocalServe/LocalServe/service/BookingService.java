@@ -20,7 +20,7 @@ public class BookingService {
     @Autowired
     private VendorRepository vendorRepository;
 
-    public Booking createBooking(User customer, Long vendorId, LocalDate bookingDate, String notes) {
+    public Booking createBooking(User customer, Long vendorId, LocalDate bookingDate, String notes, String address) {
         Vendor vendor = vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new RuntimeException("Vendor not found!"));
 
@@ -31,6 +31,7 @@ public class BookingService {
                 .status("PENDING")
                 .price(vendor.getPrice())
                 .notes(notes)
+                .address(address)
                 .build();
 
         return bookingRepository.save(booking);

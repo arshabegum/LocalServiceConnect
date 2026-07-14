@@ -17,9 +17,10 @@ public class ContactController {
 
     @PostMapping("/send")
     public String sendMessage(@RequestParam String name,
-                              @RequestParam String email,
-                              @RequestParam String message,
-                              RedirectAttributes redirectAttributes) {
+            @RequestParam String email,
+            @RequestParam String message,
+            @RequestParam(required = false) String recipientEmail,
+            RedirectAttributes redirectAttributes) {
 
         if (name.trim().isEmpty() || email.trim().isEmpty() || message.trim().isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "All fields are required!");
@@ -27,7 +28,11 @@ public class ContactController {
         }
 
         try {
-            contactMessageService.saveMessage(name, email, message);
+            // If admin is replying, recipientEmail will be provided — save the outgoing
+            // message with recipient's email
+            String targetEmail = (recipientEmail != null && !recipientEmail.trim().isEmpty()) ? recipientEmail.trim()
+                    : email.trim();
+            contactMessageService.saveMessage(name, targetEmail, message);
             redirectAttributes.addFlashAttribute("successMessage", "Your message has been sent. Thank you!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Failed to send message. Try again later.");

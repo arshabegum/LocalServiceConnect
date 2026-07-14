@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 public class PageController {
@@ -66,10 +67,10 @@ public class PageController {
         if ("CUSTOMER".equals(role)) {
             List<Booking> customerBookings = bookingService.getBookingsForCustomer(loggedInUser);
             model.addAttribute("totalBookings", customerBookings.size());
-            
+
             List<Review> customerReviews = reviewService.getReviewsByCustomer(loggedInUser);
             model.addAttribute("totalReviews", customerReviews.size());
-            
+
             List<Vendor> activeVendors = vendorService.getAllVendors();
             model.addAttribute("activeVendorsCount", activeVendors.size());
 
@@ -80,11 +81,11 @@ public class PageController {
         } else if ("VENDOR".equals(role)) {
             Vendor vendor = vendorService.getVendorByUser(loggedInUser);
             model.addAttribute("vendor", vendor);
-            
+
             if (vendor != null) {
                 List<Booking> vendorBookings = bookingService.getBookingsForVendor(vendor);
                 model.addAttribute("totalBookings", vendorBookings.size());
-                
+
                 List<Review> vendorReviews = reviewService.getReviewsForVendor(vendor);
                 model.addAttribute("totalReviews", vendorReviews.size());
                 model.addAttribute("avgRating", vendor.getRating());
@@ -96,13 +97,13 @@ public class PageController {
         } else if ("ADMIN".equals(role)) {
             List<Booking> allBookings = bookingService.getAllBookings();
             model.addAttribute("totalBookings", allBookings.size());
-            
+
             List<Vendor> allVendors = vendorService.getAllVendors();
             model.addAttribute("totalVendors", allVendors.size());
-            
+
             List<Review> allReviews = reviewService.getAllReviews();
             model.addAttribute("totalReviews", allReviews.size());
-            
+
             // Add user list stats
             model.addAttribute("totalUsers", userService.getAllUsersCount());
 
@@ -121,7 +122,7 @@ public class PageController {
         }
 
         model.addAttribute("user", loggedInUser);
-        
+
         if ("VENDOR".equalsIgnoreCase(loggedInUser.getRole())) {
             Vendor vendor = vendorService.getVendorByUser(loggedInUser);
             model.addAttribute("vendor", vendor);
@@ -137,15 +138,15 @@ public class PageController {
             @RequestParam(required = false) String name,
             HttpSession session,
             Model model) {
-        
+
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
             return "redirect:/login";
         }
-        
+
         List<Vendor> vendors = vendorService.searchVendors(category, city, name);
         model.addAttribute("vendors", vendors);
-        
+
         // Pass filter criteria back to display in fields
         model.addAttribute("selectedCategory", category);
         model.addAttribute("selectedCity", city);
@@ -207,8 +208,17 @@ public class PageController {
         // Contact is accessible to anyone (even logged out)
         if (loggedInUser != null) {
             model.addAttribute("user", loggedInUser);
-            if ("ADMIN".equalsIgnoreCase(loggedInUser.getRole())) {
-                model.addAttribute("messages", contactMessageService.getAllMessages());
+            String role = loggedInUser.getRole().toUpperCase();
+            if ("ADMIN".equals(role)) {
+                // Show only messages sent by customers (exclude admin's own outgoing replies)
+                List<ContactMessage> all = contactMessageService.getAllMessages();
+                List<ContactMessage> incoming = all.stream()
+                        .filter(m -> !m.getName().equalsIgnoreCase(loggedInUser.getFullName()))
+                        .collect(Collectors.toList());
+                model.addAttribute("messages", incoming);
+            } else if ("CUSTOMER".equals(role)) {
+                // Show messages addressed to this customer's email (including admin replies)
+                model.addAttribute("messages", contactMessageService.getMessagesForEmail(loggedInUser.getEmail()));
             }
         }
         return "contact";
