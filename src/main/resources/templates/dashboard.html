@@ -6,171 +6,98 @@
     <title>Dashboard - Local Service Connect</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <style>
-        body {
-            margin: 0;
-            background: #f4f6f9;
-            font-family: 'Inter', Arial, sans-serif;
-        }
-        .sidebar {
-            width: 240px;
-            height: 100vh;
-            background: #2c3e50;
-            position: fixed;
-            color: white;
-            padding-top: 20px;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-        }
-        .sidebar h3 {
-            text-align: center;
-            margin-bottom: 30px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-        .sidebar a {
-            display: block;
-            color: #bdc3c7;
-            text-decoration: none;
-            padding: 14px 25px;
-            font-size: 16px;
-            transition: all 0.3s;
-            border-left: 4px solid transparent;
-        }
-        .sidebar a:hover, .sidebar a.active {
-            background: #34495e;
-            color: white;
-            border-left-color: #f1c40f;
-        }
-        .sidebar a i {
-            margin-right: 10px;
-            width: 20px;
-            text-align: center;
-        }
-        .content {
-            margin-left: 240px;
-            padding: 30px;
-        }
-        .navbar-custom {
-            background: white;
-            padding: 15px 30px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .hero {
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-            color: white;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
-        }
-        .card-stat {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            background: white;
-            padding: 24px;
-            transition: all 0.3s ease;
-        }
-        .card-stat:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-        }
-        .category-card {
-            text-align: center;
-            padding: 25px;
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            background: white;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: #2c3e50;
-            display: block;
-        }
-        .category-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-            color: #3498db;
-        }
-        .category-card i {
-            font-size: 40px;
-            color: #3498db;
-            margin-bottom: 15px;
-        }
-        footer {
-            text-align: center;
-            padding: 30px;
-            color: #7f8c8d;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/global.css">
 </head>
 <body>
 
 <div class="sidebar">
-    <h3>Service Connect</h3>
-    <a href="/dashboard" class="active"><i class="fa fa-home"></i> Home</a>
-    
-    <!-- Render Profile and search options based on roles -->
-    <a href="/profile" th:if="${user.role != 'ADMIN'}"><i class="fa fa-user"></i> My Profile</a>
-    <a href="/search-vendor" th:if="${user.role == 'CUSTOMER'}"><i class="fa fa-search"></i> Search Vendors</a>
-    
-    <a href="/bookings"><i class="fa fa-calendar"></i> Bookings</a>
-    <a href="/reviews"><i class="fa fa-star"></i> Reviews</a>
-    <a href="/contact"><i class="fa fa-phone"></i> Contact</a>
-    <a href="/logout"><i class="fa fa-right-from-bracket"></i> Logout</a>
+    <h3><i class="fa-solid fa-handshake"></i> <span>Service Connect</span></h3>
+    <a href="/dashboard" class="active"><i class="fa fa-home"></i> <span>Home</span></a>
+    <a href="/profile" th:if="${user.role != 'ADMIN'}"><i class="fa fa-user"></i> <span>My Profile</span></a>
+    <a href="/search-vendor" th:if="${user.role == 'CUSTOMER'}"><i class="fa fa-search"></i> <span>Search Vendors</span></a>
+    <a href="/bookings"><i class="fa fa-calendar"></i> <span>Bookings</span></a>
+    <a href="/reviews"><i class="fa fa-star"></i> <span>Reviews</span></a>
+    <a href="/contact"><i class="fa fa-phone"></i> <span>Contact</span></a>
+    <a href="/logout"><i class="fa fa-right-from-bracket"></i> <span>Logout</span></a>
 </div>
 
 <div class="content">
     <div class="navbar-custom">
-        <h4 class="mb-0 fw-bold">Local Service Connect</h4>
-        <span class="badge bg-secondary p-2" th:text="${user.role}">ROLE</span>
+        <h4 class="mb-0 fw-bold" style="color: var(--primary); font-family: 'Poppins', sans-serif;">Local Service Connect</h4>
+        <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-primary px-3 py-2" th:text="${user.role}">ROLE</span>
+            <span class="fw-semibold" th:text="${user.fullName}">User</span>
+        </div>
     </div>
 
-    <div class="hero">
-        <h2>Welcome, <span th:text="${user.fullName}">User</span>! 👋</h2>
-        <p class="lead mb-3" th:if="${user.role == 'CUSTOMER'}">Find and book verified photographers, decorators, caterers, DJs, and makeup artists for your events.</p>
-        <p class="lead mb-3" th:if="${user.role == 'VENDOR'}">Manage your business profile, review customer booking inquiries, and build your reputation.</p>
-        <p class="lead mb-3" th:if="${user.role == 'ADMIN'}">System Administration portal. Track active users, manage bookings, and review inquiries.</p>
+    <!-- NOTIFICATIONS BOX -->
+    <div class="app-card mb-4" th:if="${notifications != null && !notifications.isEmpty()}">
+        <h5 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-bell me-2"></i>Notifications <span class="badge bg-warning text-dark rounded-pill fs-7" th:text="${unreadCount}" th:if="${unreadCount > 0}">0</span></h5>
+        <div style="max-height: 180px; overflow-y: auto; padding-right: 8px;">
+            <div th:each="n : ${notifications}" class="notification-card" th:classappend="${!n.isRead} ? 'unread' : ''">
+                <div class="d-flex justify-content-between">
+                    <p class="mb-1" th:text="${n.message}">Notification message</p>
+                    <small th:text="${#temporals.format(n.createdAt, 'dd MMM HH:mm')}">Date</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HERO PANEL -->
+    <div class="app-card mb-4 text-white" style="background: linear-gradient(135deg, #1E3A5F 0%, #2C4A73 100%);">
+        <h2 class="fw-bold mb-2">Welcome, <span th:text="${user.fullName}">User</span>! 👋</h2>
+        <p class="lead mb-4" th:if="${user.role == 'CUSTOMER'}">Find and book verified photographers, decorators, caterers, DJs, and makeup artists for your events.</p>
+        <p class="lead mb-4" th:if="${user.role == 'VENDOR'}">Manage your business profile, review customer booking inquiries, and build your reputation.</p>
+        <p class="lead mb-4" th:if="${user.role == 'ADMIN'}">System Administration portal. Track active users, manage bookings, and review inquiries.</p>
         
-        <a href="/search-vendor" class="btn btn-warning fw-semibold px-4 py-2" th:if="${user.role == 'CUSTOMER'}">
-            Search Vendors Now
-        </a>
-        <a href="/profile" class="btn btn-warning fw-semibold px-4 py-2" th:if="${user.role == 'VENDOR'}">
-            Manage Service Profile
-        </a>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="/search-vendor" class="btn-custom btn-custom-secondary text-white" th:if="${user.role == 'CUSTOMER'}">
+                <i class="fa fa-search"></i> Search Vendors Now
+            </a>
+            <a href="/budget-calculator" class="btn-custom btn-custom-success text-white" th:if="${user.role == 'CUSTOMER'}">
+                <i class="fa-solid fa-calculator"></i> Budget Calculator
+            </a>
+            <a href="/profile" class="btn-custom btn-custom-secondary text-white" th:if="${user.role == 'VENDOR'}">
+                <i class="fa fa-user"></i> Manage Service Profile
+            </a>
+        </div>
     </div>
 
-    <!-- STATS BLOCKS -->
-    <div class="container-fluid px-0">
+    <!-- EMERGENCY BOOKING QUICK CARD (Only for Customers) -->
+    <div class="app-card mb-4" th:if="${user.role == 'CUSTOMER'}">
+        <h5 class="fw-bold text-danger mb-2"><i class="fa-solid fa-truck-medical me-2"></i>Need a Vendor Today?</h5>
+        <p class="text-muted small mb-3">Book immediate emergency services. The system will auto-assign an available vendor for today. Note: 1.5x premium rate applies.</p>
+        <button class="btn-custom btn-custom-danger" data-bs-toggle="modal" data-bs-target="#emergencyModal">
+            Book Emergency Service
+        </button>
+    </div>
+
+    <!-- STATS METRICS GRID -->
+    <div class="container-fluid px-0 mb-4">
         <!-- Customer Stats -->
         <div class="row g-4" th:if="${user.role == 'CUSTOMER'}">
             <div class="col-md-3">
                 <div class="card-stat">
-                    <h3 class="fw-bold text-primary" th:text="${totalBookings}">0</h3>
-                    <p class="text-muted mb-0 fw-semibold">My Bookings</p>
+                    <h3 th:text="${totalBookings}">0</h3>
+                    <p>My Bookings</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card-stat">
-                    <h3 class="fw-bold text-success" th:text="${totalReviews}">0</h3>
-                    <p class="text-muted mb-0 fw-semibold">Reviews Given</p>
+                    <h3 th:text="${totalReviews}">0</h3>
+                    <p>Reviews Given</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card-stat">
-                    <h3 class="fw-bold text-info" th:text="${activeVendorsCount}">0</h3>
-                    <p class="text-muted mb-0 fw-semibold">Active Vendors</p>
+                    <h3 th:text="${activeVendorsCount}">0</h3>
+                    <p>Active Vendors</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card-stat">
-                    <h3 class="fw-bold text-warning">5</h3>
-                    <p class="text-muted mb-0 fw-semibold">Service Categories</p>
+                    <h3>5</h3>
+                    <p>Service Categories</p>
                 </div>
             </div>
         </div>
@@ -179,26 +106,26 @@
         <div class="row g-4" th:if="${user.role == 'VENDOR'}">
             <div class="col-md-3">
                 <div class="card-stat">
-                    <h3 class="fw-bold text-primary" th:text="${totalBookings}">0</h3>
-                    <p class="text-muted mb-0 fw-semibold">Total Bookings</p>
+                    <h3 th:text="${totalBookings}">0</h3>
+                    <p>Total Bookings</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card-stat">
-                    <h3 class="fw-bold text-success" th:text="${totalReviews}">0</h3>
-                    <p class="text-muted mb-0 fw-semibold">Reviews Received</p>
+                    <h3 th:text="${totalReviews}">0</h3>
+                    <p>Reviews Received</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card-stat">
-                    <h3 class="fw-bold text-warning" th:text="${avgRating + ' ★'}">0.0 ★</h3>
-                    <p class="text-muted mb-0 fw-semibold">Average Rating</p>
+                    <h3 th:text="${avgRating + ' ★'}">0.0 ★</h3>
+                    <p>Average Rating</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card-stat">
-                    <h3 class="fw-bold" th:classappend="${vendor.availabilityStatus} ? 'text-success' : 'text-danger'" th:text="${vendor.availabilityStatus} ? 'Available' : 'Unavailable'">Availability</h3>
-                    <p class="text-muted mb-0 fw-semibold">Service Status</p>
+                    <h3 th:classappend="${vendor != null && vendor.availabilityStatus} ? 'text-success' : 'text-danger'" th:text="${vendor != null && vendor.availabilityStatus} ? 'Available' : 'Unavailable'">Availability</h3>
+                    <p>Service Status</p>
                 </div>
             </div>
         </div>
@@ -207,113 +134,112 @@
         <div class="row g-4" th:if="${user.role == 'ADMIN'}">
             <div class="col-md-3">
                 <div class="card-stat">
-                    <h3 class="fw-bold text-primary" th:text="${totalBookings}">0</h3>
-                    <p class="text-muted mb-0 fw-semibold">Total Bookings</p>
+                    <h3 th:text="${totalBookings}">0</h3>
+                    <p>Total Bookings</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card-stat">
-                    <h3 class="fw-bold text-success" th:text="${totalVendors}">0</h3>
-                    <p class="text-muted mb-0 fw-semibold">Registered Vendors</p>
+                    <h3 th:text="${totalVendors}">0</h3>
+                    <p>Registered Vendors</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card-stat">
-                    <h3 class="fw-bold text-info" th:text="${totalUsers}">0</h3>
-                    <p class="text-muted mb-0 fw-semibold">Total Accounts</p>
+                    <h3 th:text="${totalUsers}">0</h3>
+                    <p>Total Accounts</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card-stat">
-                    <h3 class="fw-bold text-warning" th:text="${totalReviews}">0</h3>
-                    <p class="text-muted mb-0 fw-semibold">Total Reviews</p>
+                    <h3 th:text="${'₹' + totalRevenue}">₹0</h3>
+                    <p>Total Revenue</p>
                 </div>
             </div>
         </div>
-
-        <!-- Popular Categories (Only for Customers) -->
-        <div class="mt-5" th:if="${user.role == 'CUSTOMER'}">
-            <h4 class="fw-bold mb-3">Popular Categories</h4>
-            <div class="row g-4">
-                <div class="col-md-3">
-                    <a href="/search-vendor?category=Photographer" class="category-card">
-                        <i class="fa fa-camera"></i>
-                        <h5 class="fw-bold mb-0">Photographer</h5>
-                    </a>
-                </div>
-                <div class="col-md-3">
-                    <a href="/search-vendor?category=Caterer" class="category-card">
-                        <i class="fa fa-utensils"></i>
-                        <h5 class="fw-bold mb-0">Caterer</h5>
-                    </a>
-                </div>
-                <div class="col-md-3">
-                    <a href="/search-vendor?category=DJ" class="category-card">
-                        <i class="fa fa-music"></i>
-                        <h5 class="fw-bold mb-0">DJ</h5>
-                    </a>
-                </div>
-                <div class="col-md-3">
-                    <a href="/search-vendor?category=Decorator" class="category-card">
-                        <i class="fa fa-palette"></i>
-                        <h5 class="fw-bold mb-0">Decorator</h5>
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Bookings Table -->
-        <div class="mt-5">
-            <h4 class="fw-bold mb-3">Recent Bookings</h4>
-            <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-dark">
-                        <tr>
-                            <th th:if="${user.role == 'CUSTOMER'}">Vendor</th>
-                            <th th:if="${user.role == 'VENDOR'}">Customer</th>
-                            <th th:if="${user.role == 'ADMIN'}">Customer</th>
-                            <th th:if="${user.role == 'ADMIN'}">Vendor</th>
-                            
-                            <th>Category</th>
-                            <th>Date</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="booking : ${recentBookings}">
-                            <!-- Role based cell display -->
-                            <td th:if="${user.role == 'CUSTOMER'}" th:text="${booking.vendor.businessName}">Vendor Business</td>
-                            <td th:if="${user.role == 'VENDOR'}" th:text="${booking.customer.fullName}">Customer Name</td>
-                            <td th:if="${user.role == 'ADMIN'}" th:text="${booking.customer.fullName}">Customer Name</td>
-                            <td th:if="${user.role == 'ADMIN'}" th:text="${booking.vendor.businessName}">Vendor Name</td>
-
-                            <td th:text="${booking.vendor.serviceType}">Category</td>
-                            <td th:text="${booking.bookingDate}">Date</td>
-                            <td class="fw-semibold text-success" th:text="${'₹' + booking.price}">₹0.00</td>
-                            <td>
-                                <span class="badge" 
-                                      th:classappend="${booking.status == 'PENDING' ? 'bg-warning text-dark' : 
-                                                       (booking.status == 'APPROVED' ? 'bg-success' : 
-                                                       (booking.status == 'REJECTED' ? 'bg-danger' : 'bg-primary'))}"
-                                      th:text="${booking.status}">PENDING</span>
-                            </td>
-                        </tr>
-                        <tr th:if="${#lists.isEmpty(recentBookings)}">
-                            <td colspan="6" class="text-center py-4 text-muted">No recent bookings found.</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-    <footer>
-        &copy; 2026 Local Service Connect | All Rights Reserved
-    </footer>
+    <!-- RECENT BOOKINGS TABLE -->
+    <div class="app-card">
+        <h4 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-calendar-check me-2"></i>Recent Bookings</h4>
+        <div class="table-responsive">
+            <table class="table custom-table align-middle">
+                <thead>
+                    <tr>
+                        <th th:if="${user.role == 'CUSTOMER'}">Vendor</th>
+                        <th th:if="${user.role == 'VENDOR'}">Customer</th>
+                        <th th:if="${user.role == 'ADMIN'}">Customer</th>
+                        <th th:if="${user.role == 'ADMIN'}">Vendor</th>
+                        <th>Category</th>
+                        <th>Date</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="booking : ${recentBookings}">
+                        <td th:if="${user.role == 'CUSTOMER'}" th:text="${booking.vendor.businessName}">Vendor Business</td>
+                        <td th:if="${user.role == 'VENDOR'}" th:text="${booking.customer.fullName}">Customer Name</td>
+                        <td th:if="${user.role == 'ADMIN'}" th:text="${booking.customer.fullName}">Customer Name</td>
+                        <td th:if="${user.role == 'ADMIN'}" th:text="${booking.vendor.businessName}">Vendor Name</td>
+                        <td th:text="${booking.vendor.serviceType}">Category</td>
+                        <td th:text="${booking.bookingDate}">Date</td>
+                        <td class="fw-bold text-success" th:text="${'₹' + booking.price}">₹0.00</td>
+                        <td>
+                            <span class="badge" 
+                                  th:classappend="${booking.status == 'PENDING' ? 'bg-warning text-dark' : 
+                                                   (booking.status == 'APPROVED' ? 'bg-success' : 
+                                                   (booking.status == 'REJECTED' ? 'bg-danger' : 
+                                                   (booking.status == 'CANCELLED' ? 'bg-secondary' : 'bg-primary')))}"
+                                  th:text="${booking.status}">PENDING</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(recentBookings)}">
+                        <td colspan="6" class="text-center py-4 text-muted">No recent bookings found.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- EMERGENCY BOOKING MODAL -->
+<div class="modal fade" id="emergencyModal" tabindex="-1" aria-labelledby="emergencyModalLabel" aria-hidden="true" th:if="${user.role == 'CUSTOMER'}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: var(--radius-md);">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold" id="emergencyModalLabel"><i class="fa-solid fa-truck-medical me-2"></i>Emergency Booking</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/bookings/emergency" method="post">
+                <div class="modal-body form-custom">
+                    <div class="mb-3">
+                        <label>Select Category Required</label>
+                        <select name="category" class="form-select" required>
+                            <option value="Photographer">Photographer</option>
+                            <option value="Caterer">Caterer</option>
+                            <option value="Decorator">Decorator</option>
+                            <option value="DJ">DJ</option>
+                            <option value="Makeup Artist">Makeup Artist</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Event Location / Address</label>
+                        <input type="text" name="address" class="form-control" placeholder="Enter full address" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Special Instructions</label>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="Duration, guidelines..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger fw-semibold">Submit Booking</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

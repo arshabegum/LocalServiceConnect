@@ -21,6 +21,9 @@ public class ReviewService {
     @Autowired
     private VendorRepository vendorRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
     @Transactional
     public Review addReview(User customer, Long vendorId, Integer rating, String comment) {
         Vendor vendor = vendorRepository.findById(vendorId)
@@ -35,6 +38,9 @@ public class ReviewService {
                 .build();
 
         Review savedReview = reviewRepository.save(review);
+
+        // Notify vendor about new review
+        notificationService.createNotification(vendor.getUser(), "🔔 New Review: " + customer.getFullName() + " left a " + rating + "★ review for you.");
 
         // Recalculate vendor average rating
         List<Review> vendorReviews = reviewRepository.findByVendorOrderByReviewDateDesc(vendor);

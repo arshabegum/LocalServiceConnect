@@ -9,7 +9,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.List;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -29,6 +31,27 @@ public class PageController {
 
     @Autowired
     private ContactMessageService contactMessageService;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    public static class DateAvailability {
+        private String dateStr;
+        private boolean available;
+
+        public DateAvailability(String dateStr, boolean available) {
+            this.dateStr = dateStr;
+            this.available = available;
+        }
+
+        public String getDateStr() {
+            return dateStr;
+        }
+
+        public boolean isAvailable() {
+            return available;
+        }
+    }
 
     @GetMapping("/")
     public String home(HttpSession session) {
@@ -64,6 +87,11 @@ public class PageController {
         model.addAttribute("user", loggedInUser);
         String role = loggedInUser.getRole().toUpperCase();
 
+        // Get notifications
+        List<Notification> notifications = notificationService.getNotificationsForUser(loggedInUser);
+        model.addAttribute("notifications", notifications);
+        model.addAttribute("unreadCount", notifications.stream().filter(n -> !n.getIsRead()).count());
+
         if ("CUSTOMER".equals(role)) {
             List<Booking> customerBookings = bookingService.getBookingsForCustomer(loggedInUser);
             model.addAttribute("totalBookings", customerBookings.size());
@@ -74,7 +102,6 @@ public class PageController {
             List<Vendor> activeVendors = vendorService.getAllVendors();
             model.addAttribute("activeVendorsCount", activeVendors.size());
 
-            // Limit to top 5 recent bookings
             List<Booking> recentBookings = customerBookings.subList(0, Math.min(5, customerBookings.size()));
             model.addAttribute("recentBookings", recentBookings);
 
@@ -104,12 +131,17 @@ public class PageController {
             List<Review> allReviews = reviewService.getAllReviews();
             model.addAttribute("totalReviews", allReviews.size());
 
-            // Add user list stats
             model.addAttribute("totalUsers", userService.getAllUsersCount());
+            
+            // Calculate actual database revenue
+            model.addAttribute("totalRevenue", bookingService.getTotalRevenue());
 
             List<Booking> recentBookings = allBookings.subList(0, Math.min(5, allBookings.size()));
             model.addAttribute("recentBookings", recentBookings);
         }
+
+        // Mark notifications as read upon viewing dashboard
+        notificationService.markAllAsRead(loggedInUser);
 
         return "dashboard";
     }
@@ -147,13 +179,78 @@ public class PageController {
         List<Vendor> vendors = vendorService.searchVendors(category, city, name);
         model.addAttribute("vendors", vendors);
 
-        // Pass filter criteria back to display in fields
+        // Generate availability for next 5 days for each vendor
+        Map<Long, List<DateAvailability>> availabilityMap = new HashMap<>();
+        LocalDate today = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd");
+
+        for (Vendor v : vendors) {
+            List<DateAvailability> availabilities = new ArrayList<>();
+            for (int i = 0; i < 5; i++) {
+                LocalDate date = today.plusDays(i);
+                boolean isBooked = bookingService.isVendorBookedOn(v, date);
+                availabilities.add(new DateAvailability(date.format(formatter), !isBooked));
+            }
+            availabilityMap.put(v.getId(), availabilities);
+        }
+
+        model.addAttribute("availabilityMap", availabilityMap);
         model.addAttribute("selectedCategory", category);
         model.addAttribute("selectedCity", city);
         model.addAttribute("selectedName", name);
         model.addAttribute("user", loggedInUser);
 
         return "search-vendor";
+    }
+
+    @GetMapping("/budget-calculator")
+    public String budgetCalculator(
+            @RequestParam(required = false) Double budget,
+            HttpSession session,
+            Model model) {
+
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            return "redirect:/login";
+        }
+
+        model.addAttribute("user", loggedInUser);
+        model.addAttribute("budget", budget);
+
+        if (budget != null && budget > 0) {
+            // Find all active vendors
+            List<Vendor> allVendors = vendorService.getAllVendors();
+            
+            // Group vendors by category
+            Map<String, List<Vendor>> grouped = allVendors.stream()
+                    .filter(Vendor::getAvailabilityStatus)
+                    .collect(Collectors.groupingBy(Vendor::getServiceType));
+
+            List<Vendor> suggestedVendors = new ArrayList<>();
+            double totalCost = 0;
+
+            // Simple recommendation algorithm: Pick the cheapest/highest-rated vendor per category that fits the budget.
+            // Sort categories to process systematically
+            String[] categories = {"Photographer", "Caterer", "Decorator", "DJ", "Makeup Artist"};
+            for (String cat : categories) {
+                List<Vendor> catVendors = grouped.get(cat);
+                if (catVendors != null && !catVendors.isEmpty()) {
+                    // Sort by price ascending, rating descending
+                    catVendors.sort(Comparator.comparing(Vendor::getPrice)
+                            .thenComparing(Comparator.comparing(Vendor::getRating).reversed()));
+                    
+                    Vendor chosen = catVendors.get(0); // Choose cheapest
+                    suggestedVendors.add(chosen);
+                    totalCost += chosen.getPrice();
+                }
+            }
+
+            model.addAttribute("suggestedVendors", suggestedVendors);
+            model.addAttribute("totalCost", totalCost);
+            model.addAttribute("isWithinBudget", totalCost <= budget);
+        }
+
+        return "budget-calculator";
     }
 
     @GetMapping("/bookings")
@@ -190,7 +287,6 @@ public class PageController {
 
         if ("CUSTOMER".equals(role)) {
             model.addAttribute("reviews", reviewService.getReviewsByCustomer(loggedInUser));
-            // Let the customer select which vendor they'd like to write a review for
             model.addAttribute("vendors", vendorService.getAllVendors());
         } else if ("VENDOR".equals(role)) {
             Vendor vendor = vendorService.getVendorByUser(loggedInUser);
@@ -205,19 +301,16 @@ public class PageController {
     @GetMapping("/contact")
     public String contact(HttpSession session, Model model) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
-        // Contact is accessible to anyone (even logged out)
         if (loggedInUser != null) {
             model.addAttribute("user", loggedInUser);
             String role = loggedInUser.getRole().toUpperCase();
             if ("ADMIN".equals(role)) {
-                // Show only messages sent by customers (exclude admin's own outgoing replies)
                 List<ContactMessage> all = contactMessageService.getAllMessages();
                 List<ContactMessage> incoming = all.stream()
                         .filter(m -> !m.getName().equalsIgnoreCase(loggedInUser.getFullName()))
                         .collect(Collectors.toList());
                 model.addAttribute("messages", incoming);
             } else if ("CUSTOMER".equals(role)) {
-                // Show messages addressed to this customer's email (including admin replies)
                 model.addAttribute("messages", contactMessageService.getMessagesForEmail(loggedInUser.getEmail()));
             }
         }
