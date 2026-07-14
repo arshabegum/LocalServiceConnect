@@ -32,11 +32,20 @@ public class VendorService {
         String cityParam = (city == null || city.trim().isEmpty()) ? null : city;
         String nameParam = (name == null || name.trim().isEmpty()) ? null : name;
 
-        return vendorRepository.searchVendors(categoryParam, cityParam, nameParam);
+        List<Vendor> raw = vendorRepository.searchVendors(categoryParam, cityParam, nameParam);
+        return raw.stream()
+                .filter(v -> "APPROVED".equalsIgnoreCase(v.getApprovalStatus()))
+                .collect(java.util.stream.Collectors.toList());
     }
 
     public List<Vendor> getAllVendors() {
         return vendorRepository.findAll();
+    }
+
+    public List<Vendor> getAllApprovedVendors() {
+        return vendorRepository.findAll().stream()
+                .filter(v -> "APPROVED".equalsIgnoreCase(v.getApprovalStatus()))
+                .collect(java.util.stream.Collectors.toList());
     }
 
     public void createDefaultVendorProfile(User user) {
@@ -51,6 +60,7 @@ public class VendorService {
                     .availabilityStatus(true)
                     .rating(0.0)
                     .totalReviews(0)
+                    .approvalStatus("PENDING") // Pending by default
                     .build();
             vendorRepository.save(vendor);
         }

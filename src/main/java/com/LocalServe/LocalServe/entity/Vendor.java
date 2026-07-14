@@ -26,13 +26,14 @@ public class Vendor {
     private Boolean availabilityStatus = true;
     private Double rating = 0.0;
     private Integer totalReviews = 0;
+    private String approvalStatus = "PENDING"; // PENDING, APPROVED, REJECTED
 
     // No-arg constructor
     public Vendor() {
     }
 
     // All-arg constructor
-    public Vendor(Long id, User user, String businessName, String serviceType, String description, Double price, String city, Boolean availabilityStatus, Double rating, Integer totalReviews) {
+    public Vendor(Long id, User user, String businessName, String serviceType, String description, Double price, String city, Boolean availabilityStatus, Double rating, Integer totalReviews, String approvalStatus) {
         this.id = id;
         this.user = user;
         this.businessName = businessName;
@@ -43,6 +44,7 @@ public class Vendor {
         this.availabilityStatus = availabilityStatus;
         this.rating = rating;
         this.totalReviews = totalReviews;
+        this.approvalStatus = approvalStatus;
     }
 
     // Getters and Setters
@@ -126,6 +128,14 @@ public class Vendor {
         this.totalReviews = totalReviews;
     }
 
+    public String getApprovalStatus() {
+        return approvalStatus;
+    }
+
+    public void setApprovalStatus(String approvalStatus) {
+        this.approvalStatus = approvalStatus;
+    }
+
     // Manual Builder
     public static VendorBuilder builder() {
         return new VendorBuilder();
@@ -142,6 +152,7 @@ public class Vendor {
         private Boolean availabilityStatus = true; // default value
         private Double rating = 0.0; // default value
         private Integer totalReviews = 0; // default value
+        private String approvalStatus = "PENDING"; // default value
 
         public VendorBuilder id(Long id) {
             this.id = id;
@@ -193,8 +204,13 @@ public class Vendor {
             return this;
         }
 
+        public VendorBuilder approvalStatus(String approvalStatus) {
+            this.approvalStatus = approvalStatus;
+            return this;
+        }
+
         public Vendor build() {
-            return new Vendor(id, user, businessName, serviceType, description, price, city, availabilityStatus, rating, totalReviews);
+            return new Vendor(id, user, businessName, serviceType, description, price, city, availabilityStatus, rating, totalReviews, approvalStatus);
         }
     }
 }

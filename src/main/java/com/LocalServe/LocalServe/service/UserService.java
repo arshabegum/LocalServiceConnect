@@ -35,6 +35,10 @@ public class UserService {
         return userRepository.count();
     }
 
+    public long getCustomersCount() {
+        return userRepository.countByRole("CUSTOMER");
+    }
+
     public User updateUserProfile(Long id, String fullName, String phoneNumber, String password) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found!"));

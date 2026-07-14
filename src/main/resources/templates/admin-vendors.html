@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Vendors - Local Service Connect</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="/css/global.css">
+</head>
+<body>
+
+<div class="sidebar">
+    <h3><i class="fa-solid fa-handshake"></i> <span>Service Connect</span></h3>
+    <a href="/dashboard"><i class="fa fa-home"></i> <span>Home</span></a>
+    <a href="/admin/vendors" class="active"><i class="fa fa-user-gear"></i> <span>Manage Vendors</span></a>
+    <a href="/bookings"><i class="fa fa-calendar"></i> <span>Bookings</span></a>
+    <a href="/reviews"><i class="fa fa-star"></i> <span>Reviews</span></a>
+    <a href="/contact"><i class="fa fa-phone"></i> <span>Contact</span></a>
+    <a href="/logout"><i class="fa fa-right-from-bracket"></i> <span>Logout</span></a>
+</div>
+
+<div class="content">
+
+    <!-- Flash Messages -->
+    <div class="alert alert-success alert-dismissible fade show" role="alert" th:if="${successMessage}">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${errorMessage}">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="header-box">
+        <h2>Manage Service Vendors</h2>
+        <p>Review vendor registration requests, inspect business profiles, and approve/reject vendors to manage service connections.</p>
+    </div>
+
+    <!-- FILTER & SEARCH PANEL -->
+    <div class="app-card mb-4 form-custom">
+        <form action="/admin/vendors" method="get">
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label>Search Vendor</label>
+                    <input type="text" name="search" class="form-control" placeholder="Search by name, business or email..." th:value="${searchQuery}">
+                </div>
+
+                <div class="col-md-4">
+                    <label>Approval Status</label>
+                    <select name="status" class="form-select">
+                        <option value="ALL" th:selected="${selectedStatus == 'ALL'}">All Statuses</option>
+                        <option value="PENDING" th:selected="${selectedStatus == 'PENDING'}">Pending Approval</option>
+                        <option value="APPROVED" th:selected="${selectedStatus == 'APPROVED'}">Approved</option>
+                        <option value="REJECTED" th:selected="${selectedStatus == 'REJECTED'}">Rejected</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn-custom btn-custom-primary w-100 py-2">
+                        <i class="fa fa-filter"></i> Apply Filters
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- VENDORS TABLE -->
+    <div class="app-card">
+        <div class="table-responsive">
+            <table class="table custom-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Vendor Profile</th>
+                        <th>Category</th>
+                        <th>Price / Day</th>
+                        <th>Rating</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="v : ${vendors}">
+                        <td>
+                            <strong th:text="${v.businessName}">Business Name</strong><br>
+                            <span class="text-muted small" th:text="${v.user.fullName}">Owner Name</span><br>
+                            <span class="text-muted small" th:text="${v.user.email}">Email</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary" th:text="${v.serviceType}">Category</span><br>
+                            <span class="text-muted small" th:text="${v.city}">City</span>
+                        </td>
+                        <td class="fw-bold text-success" th:text="${'₹' + v.price}">₹0.00</td>
+                        <td>
+                            <i class="fa-solid fa-star text-warning"></i> <span th:text="${v.rating}">0.0</span>
+                        </td>
+                        <td>
+                            <!-- Badges mapping requested styles -->
+                            <span class="badge bg-warning text-dark" th:if="${v.approvalStatus == 'PENDING'}">🟡 Pending</span>
+                            <span class="badge bg-success text-white" th:if="${v.approvalStatus == 'APPROVED'}">🟢 Approved</span>
+                            <span class="badge bg-danger text-white" th:if="${v.approvalStatus == 'REJECTED'}">🔴 Rejected</span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <!-- Details Trigger -->
+                                <button type="button" class="btn-custom btn-custom-secondary btn-sm py-1 view-btn"
+                                        th:data-name="${v.user.fullName}"
+                                        th:data-business="${v.businessName}"
+                                        th:data-email="${v.user.email}"
+                                        th:data-phone="${v.user.phoneNumber}"
+                                        th:data-city="${v.city}"
+                                        th:data-category="${v.serviceType}"
+                                        th:data-price="${v.price}"
+                                        th:data-rating="${v.rating}"
+                                        th:data-reviews="${v.totalReviews}"
+                                        th:data-status="${v.approvalStatus}"
+                                        th:data-description="${v.description}">
+                                    👁 View
+                                </button>
+                                
+                                <!-- Approve form -->
+                                <form action="/vendors/admin/approve" method="post" class="m-0" th:if="${v.approvalStatus != 'APPROVED'}">
+                                    <input type="hidden" name="vendorId" th:value="${v.id}">
+                                    <button type="submit" class="btn-custom btn-custom-success btn-sm py-1">✓ Approve</button>
+                                </form>
+
+                                <!-- Reject form -->
+                                <form action="/vendors/admin/reject" method="post" class="m-0" th:if="${v.approvalStatus != 'REJECTED'}">
+                                    <input type="hidden" name="vendorId" th:value="${v.id}">
+                                    <button type="submit" class="btn-custom btn-custom-danger btn-sm py-1">✗ Reject</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(vendors)}">
+                        <td colspan="6" class="text-center py-4 text-muted">No vendors matching criteria found.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- VENDOR DETAILS MODAL -->
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: var(--radius-md);">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="detailsModalLabel"><i class="fa-solid fa-circle-info me-2"></i>Vendor Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered align-middle">
+                    <tbody>
+                        <tr>
+                            <td class="fw-bold text-muted" style="width: 35%;">Owner Name</td>
+                            <td id="detName">Full Name</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-muted">Business Name</td>
+                            <td id="detBusiness" class="fw-bold text-primary-light">Business Name</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-muted">Category</td>
+                            <td><span id="detCategory" class="badge bg-primary">Category</span></td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-muted">Email</td>
+                            <td id="detEmail">email@domain.com</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-muted">Phone Number</td>
+                            <td id="detPhone">+91 00000 00000</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-muted">City / Location</td>
+                            <td id="detCity">Erode</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-muted">Pricing (per day)</td>
+                            <td id="detPrice" class="fw-bold text-success">₹0.00</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-muted">Rating Profile</td>
+                            <td>
+                                <i class="fa-solid fa-star text-warning"></i> <span id="detRating">0.0</span> 
+                                (<span id="detReviews">0</span> reviews)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-muted">Current Status</td>
+                            <td id="detStatus">PENDING</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold text-muted">About / Description</td>
+                            <td id="detDesc">Description content here...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close Details</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('detName').innerText = this.dataset.name;
+            document.getElementById('detBusiness').innerText = this.dataset.business;
+            document.getElementById('detCategory').innerText = this.dataset.category;
+            document.getElementById('detEmail').innerText = this.dataset.email;
+            document.getElementById('detPhone').innerText = this.dataset.phone;
+            document.getElementById('detCity').innerText = this.dataset.city;
+            document.getElementById('detPrice').innerText = '₹' + this.dataset.price;
+            document.getElementById('detRating').innerText = this.dataset.rating;
+            document.getElementById('detReviews').innerText = this.dataset.reviews;
+            document.getElementById('detStatus').innerText = this.dataset.status;
+            document.getElementById('detDesc').innerText = this.dataset.description || 'No description supplied.';
+            
+            var modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+            modal.show();
+        });
+    });
+</script>
+</body>
+</html>

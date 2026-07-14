@@ -26,11 +26,10 @@
 <div class="sidebar">
     <h3><i class="fa-solid fa-handshake"></i> <span>Service Connect</span></h3>
     <a href="/dashboard"><i class="fa fa-home"></i> <span>Home</span></a>
-    
-    <!-- Render Profile and search options based on roles -->
+    <a href="/admin/vendors" th:if="${user != null && user.role == 'ADMIN'}"><i class="fa fa-user-gear"></i> <span>Manage Vendors</span></a>
     <a href="/profile" th:if="${user != null && user.role != 'ADMIN'}"><i class="fa fa-user"></i> <span>My Profile</span></a>
+    <a href="/vendors/availability" th:if="${user != null && user.role == 'VENDOR'}"><i class="fa fa-calendar-days"></i> <span>Manage Availability</span></a>
     <a href="/search-vendor" th:if="${user != null && user.role == 'CUSTOMER'}"><i class="fa fa-search"></i> <span>Search Vendors</span></a>
-    
     <a href="/bookings" th:if="${user != null}"><i class="fa fa-calendar"></i> <span>Bookings</span></a>
     <a href="/reviews" th:if="${user != null}"><i class="fa fa-star"></i> <span>Reviews</span></a>
     <a href="/contact" class="active"><i class="fa fa-phone"></i> <span>Contact</span></a>

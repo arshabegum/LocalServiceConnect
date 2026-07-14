@@ -127,10 +127,11 @@ public class PageController {
 
             List<Vendor> allVendors = vendorService.getAllVendors();
             model.addAttribute("totalVendors", allVendors.size());
+            model.addAttribute("pendingVendors", allVendors.stream().filter(v -> "PENDING".equalsIgnoreCase(v.getApprovalStatus())).count());
+            model.addAttribute("approvedVendors", allVendors.stream().filter(v -> "APPROVED".equalsIgnoreCase(v.getApprovalStatus())).count());
+            model.addAttribute("rejectedVendors", allVendors.stream().filter(v -> "REJECTED".equalsIgnoreCase(v.getApprovalStatus())).count());
 
-            List<Review> allReviews = reviewService.getAllReviews();
-            model.addAttribute("totalReviews", allReviews.size());
-
+            model.addAttribute("totalCustomers", userService.getCustomersCount());
             model.addAttribute("totalUsers", userService.getAllUsersCount());
             
             // Calculate actual database revenue
@@ -144,6 +145,69 @@ public class PageController {
         notificationService.markAllAsRead(loggedInUser);
 
         return "dashboard";
+    }
+
+    @GetMapping("/admin/vendors")
+    public String adminVendors(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String search,
+            HttpSession session,
+            Model model) {
+
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"ADMIN".equalsIgnoreCase(loggedInUser.getRole())) {
+            return "redirect:/login";
+        }
+
+        List<Vendor> all = vendorService.getAllVendors();
+
+        // Apply filters
+        List<Vendor> filtered = all.stream()
+                .filter(v -> {
+                    if (status != null && !status.trim().isEmpty() && !status.equalsIgnoreCase("ALL")) {
+                        return status.equalsIgnoreCase(v.getApprovalStatus());
+                    }
+                    return true;
+                })
+                .filter(v -> {
+                    if (search != null && !search.trim().isEmpty()) {
+                        String s = search.toLowerCase();
+                        return v.getBusinessName().toLowerCase().contains(s) || 
+                               v.getUser().getFullName().toLowerCase().contains(s) ||
+                               v.getUser().getEmail().toLowerCase().contains(s);
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
+
+        model.addAttribute("vendors", filtered);
+        model.addAttribute("selectedStatus", status != null ? status : "ALL");
+        model.addAttribute("searchQuery", search);
+        model.addAttribute("user", loggedInUser);
+
+        // Add counters for dashboard summary
+        model.addAttribute("totalVendors", all.size());
+        model.addAttribute("pendingVendors", all.stream().filter(v -> "PENDING".equalsIgnoreCase(v.getApprovalStatus())).count());
+        model.addAttribute("approvedVendors", all.stream().filter(v -> "APPROVED".equalsIgnoreCase(v.getApprovalStatus())).count());
+        model.addAttribute("rejectedVendors", all.stream().filter(v -> "REJECTED".equalsIgnoreCase(v.getApprovalStatus())).count());
+        model.addAttribute("totalCustomers", userService.getCustomersCount());
+        model.addAttribute("totalBookings", bookingService.getAllBookings().size());
+
+        return "admin-vendors";
+    }
+
+    @GetMapping("/vendors/availability")
+    public String manageAvailability(HttpSession session, Model model) {
+        User loggedInUser = (User) session.getAttribute("loggedInUser");
+        if (loggedInUser == null || !"VENDOR".equalsIgnoreCase(loggedInUser.getRole())) {
+            return "redirect:/login";
+        }
+
+        Vendor vendor = vendorService.getVendorByUser(loggedInUser);
+        model.addAttribute("vendor", vendor);
+        model.addAttribute("user", loggedInUser);
+
+        return "manage-availability";
     }
 
     @GetMapping("/profile")

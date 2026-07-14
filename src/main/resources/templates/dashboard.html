@@ -13,7 +13,9 @@
 <div class="sidebar">
     <h3><i class="fa-solid fa-handshake"></i> <span>Service Connect</span></h3>
     <a href="/dashboard" class="active"><i class="fa fa-home"></i> <span>Home</span></a>
+    <a href="/admin/vendors" th:if="${user.role == 'ADMIN'}"><i class="fa fa-user-gear"></i> <span>Manage Vendors</span></a>
     <a href="/profile" th:if="${user.role != 'ADMIN'}"><i class="fa fa-user"></i> <span>My Profile</span></a>
+    <a href="/vendors/availability" th:if="${user.role == 'VENDOR'}"><i class="fa fa-calendar-days"></i> <span>Manage Availability</span></a>
     <a href="/search-vendor" th:if="${user.role == 'CUSTOMER'}"><i class="fa fa-search"></i> <span>Search Vendors</span></a>
     <a href="/bookings"><i class="fa fa-calendar"></i> <span>Bookings</span></a>
     <a href="/reviews"><i class="fa fa-star"></i> <span>Reviews</span></a>
@@ -27,6 +29,22 @@
         <div class="d-flex align-items-center gap-3">
             <span class="badge bg-primary px-3 py-2" th:text="${user.role}">ROLE</span>
             <span class="fw-semibold" th:text="${user.fullName}">User</span>
+        </div>
+    </div>
+
+    <!-- VENDOR STATUS ALERTS -->
+    <div class="alert alert-warning border-0 shadow-sm mb-4" th:if="${user.role == 'VENDOR' && vendor.approvalStatus == 'PENDING'}">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i> <strong>Awaiting Verification:</strong> Your account is currently awaiting administrator approval. You will not receive customer bookings until your profile is approved.
+    </div>
+    
+    <div class="alert alert-danger border-0 shadow-sm mb-4" th:if="${user.role == 'VENDOR' && vendor.approvalStatus == 'REJECTED'}">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <i class="fa-solid fa-circle-xmark me-2"></i> <strong>Account Rejected:</strong> Your profile request was rejected by the administrator.
+            </div>
+            <form action="/vendors/admin/reapply" method="post" class="m-0">
+                <button type="submit" class="btn btn-sm btn-danger fw-bold px-3">Request Re-approval</button>
+            </form>
         </div>
     </div>
 
@@ -57,8 +75,14 @@
             <a href="/budget-calculator" class="btn-custom btn-custom-success text-white" th:if="${user.role == 'CUSTOMER'}">
                 <i class="fa-solid fa-calculator"></i> Budget Calculator
             </a>
+            <a href="/admin/vendors" class="btn-custom btn-custom-secondary text-white" th:if="${user.role == 'ADMIN'}">
+                <i class="fa fa-user-gear"></i> Manage Vendors Portal
+            </a>
             <a href="/profile" class="btn-custom btn-custom-secondary text-white" th:if="${user.role == 'VENDOR'}">
                 <i class="fa fa-user"></i> Manage Service Profile
+            </a>
+            <a href="/vendors/availability" class="btn-custom btn-custom-success text-white" th:if="${user.role == 'VENDOR'}">
+                <i class="fa fa-calendar-days"></i> Manage Availability Calendar
             </a>
         </div>
     </div>
@@ -132,28 +156,40 @@
 
         <!-- Admin Stats -->
         <div class="row g-4" th:if="${user.role == 'ADMIN'}">
-            <div class="col-md-3">
+            <div class="col-md-4">
+                <div class="card-stat">
+                    <h3 th:text="${totalVendors}">0</h3>
+                    <p>Total Vendors</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-stat" style="border-bottom: 4px solid var(--warning);">
+                    <h3 th:text="${pendingVendors}">0</h3>
+                    <p>🟡 Pending Verification</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-stat" style="border-bottom: 4px solid var(--success);">
+                    <h3 th:text="${approvedVendors}">0</h3>
+                    <p>🟢 Approved Vendors</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-stat" style="border-bottom: 4px solid var(--danger);">
+                    <h3 th:text="${rejectedVendors}">0</h3>
+                    <p>🔴 Rejected Vendors</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-stat">
+                    <h3 th:text="${totalCustomers}">0</h3>
+                    <p>Total Customers</p>
+                </div>
+            </div>
+            <div class="col-md-4">
                 <div class="card-stat">
                     <h3 th:text="${totalBookings}">0</h3>
                     <p>Total Bookings</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card-stat">
-                    <h3 th:text="${totalVendors}">0</h3>
-                    <p>Registered Vendors</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card-stat">
-                    <h3 th:text="${totalUsers}">0</h3>
-                    <p>Total Accounts</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card-stat">
-                    <h3 th:text="${'₹' + totalRevenue}">₹0</h3>
-                    <p>Total Revenue</p>
                 </div>
             </div>
         </div>
