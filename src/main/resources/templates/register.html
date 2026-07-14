@@ -9,7 +9,7 @@
     <style>
         body {
             font-family: 'Outfit', 'Inter', sans-serif;
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -32,14 +32,14 @@
             width: 70px;
             height: 70px;
             border-radius: 50%;
-            background: #11998e;
+            background:#405570;
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 30px;
             margin: 0 auto 20px;
-            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+            box-shadow:  0 4px 15px rgba(30, 60, 114, 0.3);
         }
         .form-control, .form-select {
             border-radius: 8px;
@@ -49,12 +49,12 @@
             transition: all 0.2s;
         }
         .form-control:focus, .form-select:focus {
-            border-color: #11998e;
-            box-shadow: 0 0 0 0.25rem rgba(17, 153, 142, 0.15);
+            border-color:#405570;
+            box-shadow: 0 4px 15px rgba(30, 60, 114, 0.3);
         }
         .btn-success {
-            background-color: #11998e;
-            border-color: #11998e;
+            background-color:#405570;
+            border-color:#405570;
             padding: 12px;
             border-radius: 8px;
             font-weight: 600;
@@ -62,16 +62,16 @@
             transition: all 0.2s;
         }
         .btn-success:hover {
-            background-color: #0f8076;
-            border-color: #0f8076;
+            background-color:#405570;
+            border-color:#405570;
         }
         .back-link {
             text-decoration: none;
-            color: #11998e;
+            color:#405570;
             font-weight: 500;
         }
         .back-link:hover {
-            color: #0f8076;
+            color:#405570;
         }
     </style>
 </head>
@@ -81,8 +81,11 @@
     <div class="brand-icon">
         <i class="fa-solid fa-user-plus"></i>
     </div>
-    
-    <h3 class="text-center fw-bold mb-4" style="color: #11998e;">Create Account</h3>
+
+    <h3 class="text-center fw-bold mb-4"
+        style="color: #1e3c72; text-shadow: 0 4px 15px rgba(30, 60, 114, 0.3);">
+        Create Account
+    </h3>
 
     <!-- Flash Error Alert -->
     <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${errorMessage}">
