@@ -20,6 +20,7 @@ import com.lowagie.text.FontFactory;
 import com.lowagie.text.PageSize;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.pdf.PdfWriter;
+import com.lowagie.text.Element;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfPCell;
 
@@ -90,7 +91,8 @@ public class BookingController {
     }
 
     @GetMapping("/{id}/receipt")
-    public void downloadReceipt(@PathVariable Long id, HttpSession session, HttpServletResponse response) throws IOException {
+    public void downloadReceipt(@PathVariable Long id, HttpSession session, HttpServletResponse response)
+            throws IOException {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
         if (loggedInUser == null) {
             response.sendRedirect("/login");
@@ -103,7 +105,8 @@ public class BookingController {
             return;
         }
 
-        // Security check: Only customer who booked, vendor assigned, or admin can download receipt
+        // Security check: Only customer who booked, vendor assigned, or admin can
+        // download receipt
         boolean authorized = loggedInUser.getRole().equalsIgnoreCase("ADMIN") ||
                 booking.getCustomer().getId().equals(loggedInUser.getId()) ||
                 (booking.getVendor() != null && booking.getVendor().getUser().getId().equals(loggedInUser.getId()));
@@ -122,7 +125,7 @@ public class BookingController {
         PdfWriter.getInstance(document, response.getOutputStream());
 
         document.open();
-        
+
         Font fontTitle = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 22, Color.DARK_GRAY);
         Font fontSubtitle = FontFactory.getFont(FontFactory.HELVETICA, 12, Color.GRAY);
         Font fontHeader = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, Color.WHITE);
@@ -135,56 +138,132 @@ public class BookingController {
         Paragraph subtitle = new Paragraph("Booking Invoice & Receipt", fontSubtitle);
         subtitle.setAlignment(Paragraph.ALIGN_CENTER);
         document.add(subtitle);
-        
+
         document.add(new Paragraph("\n"));
         document.add(new Paragraph("Booking ID: LSC-2026-" + booking.getId(), fontBody));
         document.add(new Paragraph("Issue Date: " + LocalDate.now(), fontBody));
         document.add(new Paragraph("Status: " + booking.getStatus(), fontBody));
-        document.add(new Paragraph("----------------------------------------------------------------------------------------------------------------------------------"));
-        
-        document.add(new Paragraph("\nCUSTOMER DETAILS", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, Color.DARK_GRAY)));
+        document.add(new Paragraph(
+                "----------------------------------------------------------------------------------------------------------------------------------"));
+
+        document.add(new Paragraph("\nCUSTOMER DETAILS",
+                FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, Color.DARK_GRAY)));
         document.add(new Paragraph("Name: " + booking.getCustomer().getFullName(), fontBody));
         document.add(new Paragraph("Email: " + booking.getCustomer().getEmail(), fontBody));
         document.add(new Paragraph("Phone: " + booking.getCustomer().getPhoneNumber(), fontBody));
-        
-        document.add(new Paragraph("\nVENDOR DETAILS", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, Color.DARK_GRAY)));
+
+        document.add(new Paragraph("\nVENDOR DETAILS",
+                FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, Color.DARK_GRAY)));
         document.add(new Paragraph("Business Name: " + booking.getVendor().getBusinessName(), fontBody));
         document.add(new Paragraph("Category: " + booking.getVendor().getServiceType(), fontBody));
         document.add(new Paragraph("Vendor Phone: " + booking.getVendor().getUser().getPhoneNumber(), fontBody));
-        
+
         document.add(new Paragraph("\n"));
-        
-        PdfPTable table = new PdfPTable(2);
+
+        PdfPTable table = new PdfPTable(new float[] { 1f, 2f });
         table.setWidthPercentage(100);
         table.setSpacingBefore(10);
-        
-        PdfPCell cell1 = new PdfPCell(new Paragraph("Description", fontHeader));
-        cell1.setBackgroundColor(new Color(30, 58, 95)); // Primary theme color
-        cell1.setPadding(8);
-        
-        PdfPCell cell2 = new PdfPCell(new Paragraph("Details", fontHeader));
-        cell2.setBackgroundColor(new Color(30, 58, 95));
-        cell2.setPadding(8);
-        
-        table.addCell(cell1);
-        table.addCell(cell2);
-        
-        table.addCell("Booking Date");
-        table.addCell(booking.getBookingDate().toString());
-        
-        table.addCell("Service Location");
-        table.addCell(booking.getAddress() != null ? booking.getAddress() : "N/A");
-        
-        table.addCell("Special Instructions");
-        table.addCell(booking.getNotes() != null ? booking.getNotes() : "N/A");
-        
-        table.addCell("Total Price");
-        table.addCell("INR " + booking.getPrice());
-        
+
+        PdfPCell headerCell1 = new PdfPCell(new Paragraph("Description", fontHeader));
+        headerCell1.setBackgroundColor(new Color(30, 58, 95));
+        headerCell1.setPadding(8);
+        headerCell1.setHorizontalAlignment(Element.ALIGN_LEFT);
+        headerCell1.setVerticalAlignment(Element.ALIGN_MIDDLE);
+
+        PdfPCell headerCell2 = new PdfPCell(new Paragraph("Details", fontHeader));
+        headerCell2.setBackgroundColor(new Color(30, 58, 95));
+        headerCell2.setPadding(8);
+        headerCell2.setHorizontalAlignment(Element.ALIGN_LEFT);
+        headerCell2.setVerticalAlignment(Element.ALIGN_MIDDLE);
+
+        table.addCell(headerCell1);
+        table.addCell(headerCell2);
+
+        PdfPCell labelCell;
+        PdfPCell valueCell;
+
+        labelCell = new PdfPCell(new Paragraph("Booking Date", fontBody));
+        labelCell.setPadding(6);
+        labelCell.setBorderColor(Color.LIGHT_GRAY);
+        labelCell.setBackgroundColor(Color.WHITE);
+        labelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+        labelCell.setVerticalAlignment(Element.ALIGN_TOP);
+        table.addCell(labelCell);
+
+        valueCell = new PdfPCell(new Paragraph(booking.getBookingDate().toString(), fontBody));
+        valueCell.setPadding(6);
+        valueCell.setBorderColor(Color.LIGHT_GRAY);
+        valueCell.setBackgroundColor(Color.WHITE);
+        valueCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+        valueCell.setVerticalAlignment(Element.ALIGN_TOP);
+        valueCell.setNoWrap(false);
+        table.addCell(valueCell);
+
+        labelCell = new PdfPCell(new Paragraph("Service Location", fontBody));
+        labelCell.setPadding(6);
+        labelCell.setBorderColor(Color.LIGHT_GRAY);
+        labelCell.setBackgroundColor(Color.WHITE);
+        labelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+        labelCell.setVerticalAlignment(Element.ALIGN_TOP);
+        table.addCell(labelCell);
+
+        valueCell = new PdfPCell(new Paragraph(booking.getAddress() != null ? booking.getAddress() : "N/A", fontBody));
+        valueCell.setPadding(6);
+        valueCell.setBorderColor(Color.LIGHT_GRAY);
+        valueCell.setBackgroundColor(Color.WHITE);
+        valueCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+        valueCell.setVerticalAlignment(Element.ALIGN_TOP);
+        valueCell.setNoWrap(false);
+        table.addCell(valueCell);
+
+        labelCell = new PdfPCell(new Paragraph("Special Instructions", fontBody));
+        labelCell.setPadding(6);
+        labelCell.setBorderColor(Color.LIGHT_GRAY);
+        labelCell.setBackgroundColor(Color.WHITE);
+        labelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+        labelCell.setVerticalAlignment(Element.ALIGN_TOP);
+        table.addCell(labelCell);
+
+        String cleanedNotes = booking.getNotes();
+        if (cleanedNotes != null) {
+            cleanedNotes = cleanedNotes.replace(". Details: . Offer note:", "").trim();
+            if (cleanedNotes.isEmpty()) {
+                cleanedNotes = "N/A";
+            }
+        } else {
+            cleanedNotes = "N/A";
+        }
+
+        valueCell = new PdfPCell(new Paragraph(cleanedNotes, fontBody));
+        valueCell.setPadding(6);
+        valueCell.setBorderColor(Color.LIGHT_GRAY);
+        valueCell.setBackgroundColor(Color.WHITE);
+        valueCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+        valueCell.setVerticalAlignment(Element.ALIGN_TOP);
+        valueCell.setNoWrap(false);
+        table.addCell(valueCell);
+
+        labelCell = new PdfPCell(new Paragraph("Total Price", fontBody));
+        labelCell.setPadding(6);
+        labelCell.setBorderColor(Color.LIGHT_GRAY);
+        labelCell.setBackgroundColor(Color.WHITE);
+        labelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+        labelCell.setVerticalAlignment(Element.ALIGN_TOP);
+        table.addCell(labelCell);
+
+        valueCell = new PdfPCell(new Paragraph("INR " + booking.getPrice(), fontBody));
+        valueCell.setPadding(6);
+        valueCell.setBorderColor(Color.LIGHT_GRAY);
+        valueCell.setBackgroundColor(Color.WHITE);
+        valueCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+        valueCell.setVerticalAlignment(Element.ALIGN_TOP);
+        valueCell.setNoWrap(false);
+        table.addCell(valueCell);
+
         document.add(table);
-        
+
         document.add(new Paragraph("\n\nThank you for choosing Local Service Connect!", fontSubtitle));
-        
+
         document.close();
     }
 }

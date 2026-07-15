@@ -30,25 +30,30 @@ public class EmergencyBookingService {
     private NotificationService notificationService;
 
     @Transactional
-    public EmergencyRequest createRequest(User customer, String category, LocalDate date, String time, String location, String notes, Double budget) {
+    public EmergencyRequest createRequest(User customer, String category, LocalDate date, String time, String location,
+            String notes, Double budget) {
         EmergencyRequest request = new EmergencyRequest(customer, category, date, time, location, notes, budget);
         EmergencyRequest saved = requestRepository.save(request);
 
         // Notify all APPROVED vendors in that category
         List<Vendor> targetVendors = vendorRepository.findAll().stream()
-                .filter(v -> v.getServiceType().equalsIgnoreCase(category) && "APPROVED".equalsIgnoreCase(v.getApprovalStatus()))
+                .filter(v -> v.getServiceType().equalsIgnoreCase(category)
+                        && "APPROVED".equalsIgnoreCase(v.getApprovalStatus()))
                 .collect(Collectors.toList());
 
         for (Vendor v : targetVendors) {
-            notificationService.createNotification(v.getUser(), "🔔 New Emergency Request: " + customer.getFullName() + " needs a " + category + " on " + date + " at " + time + ".");
+            notificationService.createNotification(v.getUser(), "🔔 New Emergency Request: " + customer.getFullName()
+                    + " needs a " + category + " on " + date + " at " + time + ".");
         }
 
-        notificationService.createNotification(customer, "🔔 Request Sent: Your emergency request for " + category + " has been sent to nearby vendors.");
+        notificationService.createNotification(customer,
+                "🔔 Request Sent: Your emergency request for " + category + " has been sent to nearby vendors.");
         return saved;
     }
 
     @Transactional
-    public EmergencyOffer createOffer(Vendor vendor, Long requestId, Double emergencyCharge, String arrivalTime, String message) {
+    public EmergencyOffer createOffer(Vendor vendor, Long requestId, Double emergencyCharge, String arrivalTime,
+            String message) {
         EmergencyRequest request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Emergency request not found!"));
 
@@ -77,7 +82,8 @@ public class EmergencyBookingService {
             requestRepository.save(request);
         }
 
-        notificationService.createNotification(request.getCustomer(), "🔔 Vendor Accepted: " + vendor.getBusinessName() + " has offered emergency service for your request.");
+        notificationService.createNotification(request.getCustomer(),
+                "🔔 Vendor Accepted: " + vendor.getBusinessName() + " has offered emergency service for your request.");
         return saved;
     }
 
@@ -124,26 +130,41 @@ public class EmergencyBookingService {
             if (!o.getId().equals(offer.getId())) {
                 o.setStatus("CLOSED");
                 offerRepository.save(o);
-                notificationService.createNotification(o.getVendor().getUser(), "🔔 Customer Declined Your Offer: Emergency request for " + customer.getFullName() + " was assigned to another vendor.");
+                notificationService.createNotification(o.getVendor().getUser(),
+                        "🔔 Customer Declined Your Offer: Emergency request for " + customer.getFullName()
+                                + " was assigned to another vendor.");
             }
         }
 
         // Create standard confirmed booking
         Vendor vendor = offer.getVendor();
+        StringBuilder emergencyNotes = new StringBuilder();
+        emergencyNotes.append("[EMERGENCY BOOKING] Time: ").append(request.getEventTime());
+
+        if (request.getNotes() != null && !request.getNotes().trim().isEmpty()) {
+            emergencyNotes.append(". Details: ").append(request.getNotes().trim());
+        }
+        if (offer.getMessage() != null && !offer.getMessage().trim().isEmpty()) {
+            emergencyNotes.append(". Offer note: ").append(offer.getMessage().trim());
+        }
+
         Booking booking = Booking.builder()
                 .customer(customer)
                 .vendor(vendor)
                 .bookingDate(request.getEventDate())
                 .status("APPROVED") // confirmed immediately
                 .price(vendor.getPrice() + offer.getEmergencyCharge())
-                .notes("[EMERGENCY BOOKING] Time: " + request.getEventTime() + ". Details: " + request.getNotes() + ". Offer note: " + offer.getMessage())
+                .notes(emergencyNotes.toString())
                 .address(request.getEventLocation())
                 .build();
 
         Booking savedBooking = bookingRepository.save(booking);
 
-        notificationService.createNotification(customer, "🔔 Booking Confirmed: Your emergency booking with " + vendor.getBusinessName() + " has been confirmed.");
-        notificationService.createNotification(vendor.getUser(), "🔔 Customer Accepted Your Offer: You are booked for an emergency event on " + request.getEventDate() + " at " + request.getEventTime() + ".");
+        notificationService.createNotification(customer, "🔔 Booking Confirmed: Your emergency booking with "
+                + vendor.getBusinessName() + " has been confirmed.");
+        notificationService.createNotification(vendor.getUser(),
+                "🔔 Customer Accepted Your Offer: You are booked for an emergency event on " + request.getEventDate()
+                        + " at " + request.getEventTime() + ".");
 
         return savedBooking;
     }
@@ -160,7 +181,8 @@ public class EmergencyBookingService {
         offer.setStatus("REJECTED");
         offerRepository.save(offer);
 
-        notificationService.createNotification(offer.getVendor().getUser(), "🔔 Customer Declined Your Offer: Your emergency offer has been declined.");
+        notificationService.createNotification(offer.getVendor().getUser(),
+                "🔔 Customer Declined Your Offer: Your emergency offer has been declined.");
     }
 
     public List<EmergencyRequest> getRequestsForCustomer(User customer) {
@@ -180,7 +202,8 @@ public class EmergencyBookingService {
 
     public List<EmergencyOffer> getOffersForRequest(Long requestId) {
         EmergencyRequest request = requestRepository.findById(requestId).orElse(null);
-        if (request == null) return List.of();
+        if (request == null)
+            return List.of();
         return offerRepository.findByRequest(request).stream()
                 .filter(o -> !"CLOSED".equalsIgnoreCase(o.getStatus()) && !"REJECTED".equalsIgnoreCase(o.getStatus()))
                 .collect(Collectors.toList());

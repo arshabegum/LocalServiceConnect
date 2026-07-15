@@ -67,7 +67,7 @@
                     </table>
                 </div>
 
-                <div class="border-top pt-3">
+                <div class="border-top pt-3" th:if="${r.status == 'PENDING'}">
                     <div class="d-flex gap-2">
                         <!-- Accept Form Trigger -->
                         <button type="button" class="btn-custom btn-custom-success w-100 py-2 bid-btn"
@@ -83,6 +83,10 @@
                             </button>
                         </form>
                     </div>
+                </div>
+                <div class="border-top pt-3 text-center" th:if="${r.status != 'PENDING'}">
+                    <span class="badge bg-success p-2" th:if="${r.status == 'ACCEPTED' || r.status == 'CONFIRMED'}">🟢 Request Assigned</span>
+                    <span class="badge bg-secondary p-2" th:if="${r.status != 'ACCEPTED' && r.status != 'CONFIRMED'}" th:text="${r.status}">CLOSED</span>
                 </div>
             </div>
         </div>
