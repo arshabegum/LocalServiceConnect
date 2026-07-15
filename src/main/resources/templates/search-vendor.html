@@ -16,7 +16,9 @@
     <a href="/admin/vendors" th:if="${user.role == 'ADMIN'}"><i class="fa fa-user-gear"></i> <span>Manage Vendors</span></a>
     <a href="/profile" th:if="${user.role != 'ADMIN'}"><i class="fa fa-user"></i> <span>My Profile</span></a>
     <a href="/vendors/availability" th:if="${user.role == 'VENDOR'}"><i class="fa fa-calendar-days"></i> <span>Manage Availability</span></a>
+    <a href="/emergency/requests" th:if="${user.role == 'VENDOR'}"><i class="fa-solid fa-bolt text-danger"></i> <span>Emergency Feed</span></a>
     <a href="/search-vendor" class="active" th:if="${user.role == 'CUSTOMER'}"><i class="fa fa-search"></i> <span>Search Vendors</span></a>
+    <a href="/budget-finder" th:if="${user.role == 'CUSTOMER'}"><i class="fa-solid fa-calculator"></i> <span>Budget Finder</span></a>
     <a href="/bookings"><i class="fa fa-calendar"></i> <span>Bookings</span></a>
     <a href="/reviews"><i class="fa fa-star"></i> <span>Reviews</span></a>
     <a href="/contact"><i class="fa fa-phone"></i> <span>Contact</span></a>

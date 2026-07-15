@@ -69,29 +69,6 @@ public class BookingController {
         }
     }
 
-    @PostMapping("/emergency")
-    public String createEmergencyBooking(@RequestParam String category,
-            @RequestParam(required = false) String notes,
-            @RequestParam String address,
-            HttpSession session,
-            RedirectAttributes redirectAttributes) {
-
-        User loggedInUser = (User) session.getAttribute("loggedInUser");
-        if (loggedInUser == null || !"CUSTOMER".equalsIgnoreCase(loggedInUser.getRole())) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Only customers can book services!");
-            return "redirect:/login";
-        }
-
-        try {
-            bookingService.createEmergencyBooking(loggedInUser, category, notes, address);
-            redirectAttributes.addFlashAttribute("successMessage", "Emergency booking created and approved successfully! Premium rates applied.");
-            return "redirect:/bookings";
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Emergency Booking Failed: " + e.getMessage());
-            return "redirect:/search-vendor";
-        }
-    }
-
     @PostMapping("/cancel")
     public String cancelBooking(@RequestParam Long bookingId,
             HttpSession session,

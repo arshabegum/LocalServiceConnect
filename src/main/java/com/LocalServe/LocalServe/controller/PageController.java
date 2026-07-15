@@ -77,6 +77,9 @@ public class PageController {
         return "register";
     }
 
+    @Autowired
+    private EmergencyBookingService emergencyBookingService;
+
     @GetMapping("/dashboard")
     public String dashboard(HttpSession session, Model model) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
@@ -105,6 +108,8 @@ public class PageController {
             List<Booking> recentBookings = customerBookings.subList(0, Math.min(5, customerBookings.size()));
             model.addAttribute("recentBookings", recentBookings);
 
+            model.addAttribute("emergencyRequests", emergencyBookingService.getRequestsForCustomer(loggedInUser));
+
         } else if ("VENDOR".equals(role)) {
             Vendor vendor = vendorService.getVendorByUser(loggedInUser);
             model.addAttribute("vendor", vendor);
@@ -119,6 +124,10 @@ public class PageController {
 
                 List<Booking> recentBookings = vendorBookings.subList(0, Math.min(5, vendorBookings.size()));
                 model.addAttribute("recentBookings", recentBookings);
+
+                int openReqsCount = emergencyBookingService.getPendingRequestsForVendorCategory(vendor.getServiceType()).size() + 
+                                   emergencyBookingService.getAcceptedRequestsForVendorCategory(vendor.getServiceType()).size();
+                model.addAttribute("openEmergencyRequestsCount", openReqsCount);
             }
 
         } else if ("ADMIN".equals(role)) {
@@ -267,9 +276,13 @@ public class PageController {
         return "search-vendor";
     }
 
-    @GetMapping("/budget-calculator")
-    public String budgetCalculator(
+    @GetMapping("/budget-finder")
+    public String budgetFinder(
+            @RequestParam(required = false) String category,
             @RequestParam(required = false) Double budget,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) Double minRating,
+            @RequestParam(required = false) String city,
             HttpSession session,
             Model model) {
 
@@ -279,42 +292,44 @@ public class PageController {
         }
 
         model.addAttribute("user", loggedInUser);
+        model.addAttribute("category", category);
         model.addAttribute("budget", budget);
+        model.addAttribute("sortBy", sortBy != null ? sortBy : "price_asc");
+        model.addAttribute("minRating", minRating);
+        model.addAttribute("city", city);
 
-        if (budget != null && budget > 0) {
-            // Find all active vendors
-            List<Vendor> allVendors = vendorService.getAllVendors();
-            
-            // Group vendors by category
-            Map<String, List<Vendor>> grouped = allVendors.stream()
-                    .filter(Vendor::getAvailabilityStatus)
-                    .collect(Collectors.groupingBy(Vendor::getServiceType));
+        List<Vendor> filtered = new java.util.ArrayList<>();
 
-            List<Vendor> suggestedVendors = new ArrayList<>();
-            double totalCost = 0;
+        if (category != null && !category.trim().isEmpty() && budget != null) {
+            List<Vendor> approved = vendorService.getAllApprovedVendors();
 
-            // Simple recommendation algorithm: Pick the cheapest/highest-rated vendor per category that fits the budget.
-            // Sort categories to process systematically
-            String[] categories = {"Photographer", "Caterer", "Decorator", "DJ", "Makeup Artist"};
-            for (String cat : categories) {
-                List<Vendor> catVendors = grouped.get(cat);
-                if (catVendors != null && !catVendors.isEmpty()) {
-                    // Sort by price ascending, rating descending
-                    catVendors.sort(Comparator.comparing(Vendor::getPrice)
-                            .thenComparing(Comparator.comparing(Vendor::getRating).reversed()));
-                    
-                    Vendor chosen = catVendors.get(0); // Choose cheapest
-                    suggestedVendors.add(chosen);
-                    totalCost += chosen.getPrice();
-                }
+            filtered = approved.stream()
+                    .filter(v -> v.getServiceType().equalsIgnoreCase(category))
+                    .filter(v -> v.getPrice() <= budget)
+                    .filter(v -> {
+                        if (minRating != null) {
+                            return v.getRating() >= minRating;
+                        }
+                        return true;
+                    })
+                    .filter(v -> {
+                        if (city != null && !city.trim().isEmpty()) {
+                            return v.getCity().equalsIgnoreCase(city);
+                        }
+                        return true;
+                    })
+                    .collect(Collectors.toList());
+
+            // Sort results
+            if ("price_asc".equalsIgnoreCase(sortBy)) {
+                filtered.sort(Comparator.comparing(Vendor::getPrice));
+            } else if ("rating_desc".equalsIgnoreCase(sortBy)) {
+                filtered.sort(Comparator.comparing(Vendor::getRating).reversed());
             }
-
-            model.addAttribute("suggestedVendors", suggestedVendors);
-            model.addAttribute("totalCost", totalCost);
-            model.addAttribute("isWithinBudget", totalCost <= budget);
         }
 
-        return "budget-calculator";
+        model.addAttribute("vendors", filtered);
+        return "budget-finder";
     }
 
     @GetMapping("/bookings")

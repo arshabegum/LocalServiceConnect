@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget-Based Vendor Finder - Local Service Connect</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="/css/global.css">
+</head>
+<body>
+
+<div class="sidebar">
+    <h3><i class="fa-solid fa-handshake"></i> <span>Service Connect</span></h3>
+    <a href="/dashboard"><i class="fa fa-home"></i> <span>Home</span></a>
+    <a href="/admin/vendors" th:if="${user.role == 'ADMIN'}"><i class="fa fa-user-gear"></i> <span>Manage Vendors</span></a>
+    <a href="/profile" th:if="${user.role != 'ADMIN'}"><i class="fa fa-user"></i> <span>My Profile</span></a>
+    <a href="/vendors/availability" th:if="${user.role == 'VENDOR'}"><i class="fa fa-calendar-days"></i> <span>Manage Availability</span></a>
+    <a href="/search-vendor" th:if="${user.role == 'CUSTOMER'}"><i class="fa fa-search"></i> <span>Search Vendors</span></a>
+    <a href="/bookings"><i class="fa fa-calendar"></i> <span>Bookings</span></a>
+    <a href="/reviews"><i class="fa fa-star"></i> <span>Reviews</span></a>
+    <a href="/contact"><i class="fa fa-phone"></i> <span>Contact</span></a>
+    <a href="/logout"><i class="fa fa-right-from-bracket"></i> <span>Logout</span></a>
+</div>
+
+<div class="content">
+
+    <div class="header-box">
+        <h2>Budget-Based Vendor Finder 💰</h2>
+        <p>Find professional, approved service vendors matching your service preferences and maximum target budget.</p>
+    </div>
+
+    <!-- SEARCH & FILTER FORM -->
+    <div class="app-card mb-4 form-custom">
+        <form action="/budget-finder" method="get">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label>Select Service</label>
+                    <select name="category" class="form-select" required>
+                        <option value="" disabled th:selected="${category == null}">Choose category...</option>
+                        <option value="Photographer" th:selected="${category == 'Photographer'}">Photographer</option>
+                        <option value="Caterer" th:selected="${category == 'Caterer'}">Caterer</option>
+                        <option value="Decorator" th:selected="${category == 'Decorator'}">Decorator</option>
+                        <option value="DJ" th:selected="${category == 'DJ'}">DJ</option>
+                        <option value="Makeup Artist" th:selected="${category == 'Makeup Artist'}">Makeup Artist</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label>Max Budget (₹)</label>
+                    <input type="number" name="budget" class="form-control" placeholder="e.g. 50000" th:value="${budget}" min="1" required>
+                </div>
+
+                <div class="col-md-2">
+                    <label>Location / City</label>
+                    <input type="text" name="city" class="form-control" placeholder="e.g. Erode" th:value="${city}">
+                </div>
+
+                <div class="col-md-2">
+                    <label>Min Rating</label>
+                    <select name="minRating" class="form-select">
+                        <option value="" th:selected="${minRating == null}">All Ratings</option>
+                        <option value="4.0" th:selected="${minRating == 4.0}">4.0+ ★</option>
+                        <option value="4.5" th:selected="${minRating == 4.5}">4.5+ ★</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label>Sort By</label>
+                    <select name="sortBy" class="form-select">
+                        <option value="price_asc" th:selected="${sortBy == 'price_asc'}">Lowest Price</option>
+                        <option value="rating_desc" th:selected="${sortBy == 'rating_desc'}">Highest Rated</option>
+                    </select>
+                </div>
+
+                <div class="col-12 d-flex justify-content-end">
+                    <button type="submit" class="btn-custom btn-custom-primary px-4 py-2">
+                        <i class="fa fa-search me-2"></i> Find Vendors
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- RESULTS GRID -->
+    <div class="row" th:if="${budget != null}">
+        <div class="col-12 mb-3">
+            <h4 class="fw-bold text-primary" th:text="${vendors.size() + ' Vendors Found Under ₹' + budget}">0 Vendors Found</h4>
+        </div>
+
+        <div class="col-md-6 col-lg-4 mb-4" th:each="v : ${vendors}">
+            <div class="app-card h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <!-- Vendor Meta -->
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="badge bg-secondary mb-1" th:text="${v.serviceType}">Category</span>
+                            <h4 class="fw-bold text-primary mb-0" th:text="${v.businessName}">Business Name</h4>
+                            <small class="text-muted"><i class="fa-solid fa-location-dot me-1"></i> <span th:text="${v.city}">City</span></small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-success text-white py-1.5 px-2">
+                                <i class="fa-solid fa-star text-warning me-1"></i> <span th:text="${v.rating}">4.5</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <p class="text-muted small text-start mb-3" th:text="${v.description}">Description summary text...</p>
+                    <h5 class="fw-bold text-success mb-3" th:text="${'₹' + v.price + ' / day'}">₹0.00</h5>
+                </div>
+
+                <!-- Action Blocks -->
+                <div>
+                    <div class="border-top pt-3 text-center mb-2">
+                        <button class="btn-custom btn-custom-secondary btn-sm py-1.5 w-100 view-avail-btn" 
+                                th:data-vendor-id="${v.id}"
+                                th:data-vendor-name="${v.businessName}"
+                                th:data-vendor-price="${v.price}"
+                                th:data-availability-status="${v.availabilityStatus}">
+                            <i class="fa-solid fa-calendar-days me-2"></i> View Availability Calendar
+                        </button>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn-custom btn-custom-primary w-100 py-2 book-btn"
+                                th:if="${v.availabilityStatus}"
+                                th:data-vendor-id="${v.id}"
+                                th:data-vendor-name="${v.businessName}"
+                                th:data-vendor-price="${v.price}">
+                            Book Now
+                        </button>
+                        <button class="btn-custom btn-custom-secondary w-100 py-2" th:if="${!v.availabilityStatus}" disabled>
+                            Unavailable
+                        </button>
+                        
+                        <button class="btn-custom btn-custom-secondary py-2 px-3 info-btn"
+                                th:data-business="${v.businessName}"
+                                th:data-category="${v.serviceType}"
+                                th:data-city="${v.city}"
+                                th:data-price="${v.price}"
+                                th:data-rating="${v.rating}"
+                                th:data-desc="${v.description}"
+                                th:data-phone="${v.user.phoneNumber}"
+                                th:data-email="${v.user.email}">
+                            <i class="fa-solid fa-circle-info"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 text-center py-5" th:if="${#lists.isEmpty(vendors)}">
+            <div class="app-card py-5">
+                <i class="fa-solid fa-folder-open text-muted mb-3" style="font-size: 60px;"></i>
+                <h4 class="text-muted">No vendors matching both service and budget criteria were found.</h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty Search State -->
+    <div class="app-card text-center py-5" th:if="${budget == null}">
+        <i class="fa-solid fa-calculator text-muted mb-3" style="font-size: 60px;"></i>
+        <h4 class="text-muted">Specify your budget and category preferences above to locate matching service vendors.</h4>
+    </div>
+
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: var(--radius-md);">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="bookingModalLabel"><i class="fa-solid fa-calendar-check me-2"></i>Book Vendor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/bookings/create" method="post">
+                <div class="modal-body form-custom">
+                    <input type="hidden" name="vendorId" id="modalVendorId">
+                    <div class="mb-3">
+                        <label>Vendor Name</label>
+                        <input type="text" class="form-control bg-light" id="modalVendorName" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label>Event Date</label>
+                        <input type="date" name="bookingDate" class="form-control" id="modalBookingDate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Price Quote (per day)</label>
+                        <input type="text" class="form-control bg-light" id="modalVendorPrice" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label>Event Venue / Address</label>
+                        <input type="text" name="address" class="form-control" placeholder="Enter venue address details" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Special Instructions / Notes</label>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="Tell the vendor about custom preferences..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-custom btn-custom-primary">Submit Booking</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- VENDOR DETAIL MODAL -->
+<div class="modal fade" id="infoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: var(--radius-md);">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-user me-2"></i>Vendor Profile Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr><td class="fw-bold text-muted" style="width: 35%;">Business Name</td><td id="infoBusiness" class="fw-bold text-primary"></td></tr>
+                        <tr><td class="fw-bold text-muted">Category</td><td><span id="infoCategory" class="badge bg-primary"></span></td></tr>
+                        <tr><td class="fw-bold text-muted">City</td><td id="infoCity"></td></tr>
+                        <tr><td class="fw-bold text-muted">Price</td><td id="infoPrice" class="fw-bold text-success"></td></tr>
+                        <tr><td class="fw-bold text-muted">Rating</td><td><i class="fa-solid fa-star text-warning"></i> <span id="infoRating"></span></td></tr>
+                        <tr><td class="fw-bold text-muted">Phone</td><td id="infoPhone"></td></tr>
+                        <tr><td class="fw-bold text-muted">Email</td><td id="infoEmail"></td></tr>
+                        <tr><td class="fw-bold text-muted">About</td><td id="infoDesc"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CALENDAR MODAL -->
+<div class="modal fade" id="availCalendarModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: var(--radius-md);">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-calendar-days me-2"></i>Vendor Availability</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-primary mb-0" id="availMonthYear">Loading Month...</h5>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn-custom btn-custom-secondary btn-sm py-1" onclick="navAvailMonth(-1)">
+                            <i class="fa fa-chevron-left"></i> Prev
+                        </button>
+                        <button type="button" class="btn-custom btn-custom-secondary btn-sm py-1" onclick="navAvailMonth(1)">
+                            Next <i class="fa fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 justify-content-center mb-3 small fw-semibold">
+                    <span>🟢 Available</span>
+                    <span>🔴 Unavailable</span>
+                    <span>⚪ Past</span>
+                </div>
+                <div class="avail-calendar-grid" id="availCalendarDays" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;">
+                    <!-- Headers -->
+                    <div class="text-center fw-bold" style="padding: 4px; font-size: 11px; background:#e2e8f0; border-radius:4px;">Su</div>
+                    <div class="text-center fw-bold" style="padding: 4px; font-size: 11px; background:#e2e8f0; border-radius:4px;">Mo</div>
+                    <div class="text-center fw-bold" style="padding: 4px; font-size: 11px; background:#e2e8f0; border-radius:4px;">Tu</div>
+                    <div class="text-center fw-bold" style="padding: 4px; font-size: 11px; background:#e2e8f0; border-radius:4px;">We</div>
+                    <div class="text-center fw-bold" style="padding: 4px; font-size: 11px; background:#e2e8f0; border-radius:4px;">Th</div>
+                    <div class="text-center fw-bold" style="padding: 4px; font-size: 11px; background:#e2e8f0; border-radius:4px;">Fr</div>
+                    <div class="text-center fw-bold" style="padding: 4px; font-size: 11px; background:#e2e8f0; border-radius:4px;">Sa</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    var today = new Date().toISOString().split('T')[0];
+    document.getElementById('modalBookingDate').setAttribute('min', today);
+
+    // Book Now Handler
+    document.querySelectorAll('.book-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const vendorId = this.dataset.vendorId;
+            const name = this.dataset.vendorName;
+            const price = this.dataset.vendorPrice;
+            openBookingModal(vendorId, name, price);
+        });
+    });
+
+    function openBookingModal(vendorId, name, price, date = '') {
+        document.getElementById('modalVendorId').value = vendorId;
+        document.getElementById('modalVendorName').value = name;
+        document.getElementById('modalVendorPrice').value = '₹' + price;
+        document.getElementById('modalBookingDate').value = date;
+        new bootstrap.Modal(document.getElementById('bookingModal')).show();
+    }
+
+    // View Info Details Handler
+    document.querySelectorAll('.info-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('infoBusiness').innerText = this.dataset.business;
+            document.getElementById('infoCategory').innerText = this.dataset.category;
+            document.getElementById('infoCity').innerText = this.dataset.city;
+            document.getElementById('infoPrice').innerText = '₹' + this.dataset.price + ' / day';
+            document.getElementById('infoRating').innerText = this.dataset.rating;
+            document.getElementById('infoPhone').innerText = this.dataset.phone;
+            document.getElementById('infoEmail').innerText = this.dataset.email;
+            document.getElementById('infoDesc').innerText = this.dataset.desc || 'No description supplied.';
+            new bootstrap.Modal(document.getElementById('infoModal')).show();
+        });
+    });
+
+    // Calendar Modal Handler
+    let activeVendorId = 0;
+    let activeVendorName = '';
+    let activeVendorPrice = 0;
+    let activeCalDate = new Date();
+    let modalAvailabilityMap = {};
+    let calendarModalInstance = null;
+
+    document.querySelectorAll('.view-avail-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            activeVendorId = this.dataset.vendorId;
+            activeVendorName = this.dataset.vendorName;
+            activeVendorPrice = this.dataset.vendorPrice;
+            activeCalDate = new Date();
+            
+            calendarModalInstance = new bootstrap.Modal(document.getElementById('availCalendarModal'));
+            loadModalMonth(activeCalDate.getFullYear(), activeCalDate.getMonth());
+            calendarModalInstance.show();
+        });
+    });
+
+    function navAvailMonth(dir) {
+        activeCalDate.setMonth(activeCalDate.getMonth() + dir);
+        loadModalMonth(activeCalDate.getFullYear(), activeCalDate.getMonth());
+    }
+
+    async function loadModalMonth(year, month) {
+        try {
+            const response = await fetch(`/api/vendors/${activeVendorId}/availability?year=${year}&month=${month + 1}`);
+            modalAvailabilityMap = await response.json();
+            
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            document.getElementById("availMonthYear").innerText = `${monthNames[month]} ${year}`;
+
+            renderModalCalendar(year, month);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    function renderModalCalendar(year, month) {
+        const grid = document.getElementById("availCalendarDays");
+        const headers = grid.querySelectorAll('div[style*="background"]');
+        grid.innerHTML = '';
+        headers.forEach(h => grid.appendChild(h));
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        for (let i = 0; i < firstDay; i++) {
+            grid.appendChild(document.createElement("div"));
+        }
+
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            const dateStr = date.toISOString().split('T')[0];
+            const status = modalAvailabilityMap[dateStr] || "AVAILABLE";
+
+            const cell = document.createElement("div");
+            cell.style.padding = "10px";
+            cell.style.textAlign = "center";
+            cell.style.borderRadius = "6px";
+            cell.style.fontWeight = "600";
+            cell.style.cursor = "pointer";
+            cell.innerText = day;
+
+            if (dateStr < todayStr) {
+                cell.style.backgroundColor = "#e2e8f0";
+                cell.style.color = "#9ca3af";
+                cell.style.cursor = "not-allowed";
+            } else if (status === "AVAILABLE") {
+                cell.style.backgroundColor = "#d1fae5";
+                cell.style.color = "#065f46";
+                cell.addEventListener('click', () => {
+                    calendarModalInstance.hide();
+                    openBookingModal(activeVendorId, activeVendorName, activeVendorPrice, dateStr);
+                });
+            } else {
+                cell.style.backgroundColor = "#fee2e2";
+                cell.style.color = "#991b1b";
+                cell.style.cursor = "not-allowed";
+            }
+            grid.appendChild(cell);
+        }
+    }
+</script>
+</body>
+</html>
